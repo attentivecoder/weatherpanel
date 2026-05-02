@@ -1,0 +1,319 @@
+/* =========================
+   WEATHER PANEL - Clean & Bright Forecast
+   ========================= */
+
+/* -------------------------
+   PANEL BUTTON (TOP BAR)
+   ------------------------- */
+.panel-button.weatherpanel-button {
+    padding-left: 20px;
+    padding-right: 20px;
+    justify-content: center;
+}
+
+.panel-button.weatherpanel-button:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+    color: @theme_fg_color;
+    padding-left: 21px;
+    padding-right: 21px;
+}
+
+.panel-button.weatherpanel-button:hover > StIcon {
+    icon-color: @theme_fg_color;
+}
+
+.panel-button.weatherpanel-button > StIcon {
+    icon-size: 16px;
+    padding-right: 8px;
+}
+
+.panel-button.weatherpanel-button:active,
+.panel-button.weatherpanel-button.active {
+    background-color: rgba(255, 255, 255, 0.12);
+    color: @theme_fg_color;
+}
+
+.panel-button.weatherpanel-button:active > StIcon,
+.panel-button.weatherpanel-button.active > StIcon {
+    icon-color: @theme_fg_color;
+}
+
+/* -------------------------
+   STRONG FONT OVERRIDES
+   ------------------------- */
+.popup-menu-content StLabel.weatherpanel-city-header {
+    font-size: 21px !important;
+}
+
+.popup-menu-content StLabel.weatherpanel-current-headline {
+    font-size: 18px !important;
+}
+
+.popup-menu-content StLabel.weatherpanel-current-details {
+    font-size: 12px !important;
+}
+
+.popup-menu-content StLabel.weatherpanel-section-header {
+    font-size: 17px !important;
+}
+
+.popup-menu-content StLabel.weatherpanel-status-label {
+    font-size: 11px !important;
+}
+
+.popup-menu-content StLabel.weatherpanel-updated-label {
+    font-size: 11px !important;
+}
+
+.popup-menu-content StLabel.weatherpanel-provider-row {
+    font-size: 11px !important;
+}
+
+.popup-menu-content StLabel.weatherpanel-offline-banner {
+    font-size: 11px !important;
+}
+
+.popup-menu-item.weatherpanel-button-action:disabled,
+.popup-menu-item.weatherpanel-button-action.disabled {
+    opacity: 0.4;
+    background-color: transparent;
+}
+
+/* -------------------------
+   GLOBAL LABEL COLOR
+   ------------------------- */
+.weatherpanel-menu-root StLabel {
+    color: @theme_fg_color;
+}
+
+/* -------------------------
+   UPDATED LABEL
+   ------------------------- */
+.weatherpanel-updated-label {
+    color: @theme_unfocused_fg_color;
+    padding: 0 12px 4px 12px;
+}
+
+/* -------------------------
+   CITY HEADER
+   ------------------------- */
+.weatherpanel-city-box {
+    padding: 0 12px;
+    margin: 0 0 6px 0;
+}
+
+.weatherpanel-city-header {
+    font-weight: 700;
+    color: @theme_fg_color;
+    padding: 8px 0 10px 0;
+    margin: 0 12px 6px 12px;
+    border-bottom: 1px solid @borders_color;
+    letter-spacing: 0.2px;
+}
+
+/* -------------------------
+   MENU ROOT & STATUS ROW
+   ------------------------- */
+.weatherpanel-menu-root {
+    padding: 0;
+    margin: 0;
+    spacing: 0;
+}
+
+.weatherpanel-bottom-row {
+    padding: 6px 12px 10px 12px;
+}
+
+.weatherpanel-provider-row {
+    color: @theme_unfocused_fg_color;
+    background-color: transparent;
+    padding: 0;
+}
+
+.weatherpanel-status-label {
+    color: @theme_unfocused_fg_color;
+}
+
+.weatherpanel-offline-banner {
+    opacity: 0.75;
+    color: @theme_unfocused_fg_color;
+}
+
+/* -------------------------
+   CURRENT WEATHER
+   ------------------------- */
+.weatherpanel-current-icon {
+    icon-size: 48px;
+    margin: 0 12px;
+    opacity: 0.95;
+}
+
+.weatherpanel-current-headline {
+    font-weight: 700;
+    padding: 2px 0;
+    color: @theme_fg_color;
+}
+
+.weatherpanel-current-details {
+    opacity: 0.87;
+    padding: 0;
+    color: @theme_unfocused_fg_color;
+}
+
+.weatherpanel-current-box {
+    padding: 6px 0 10px 0;
+    margin: 0 12px 6px 12px;
+}
+
+/* -------------------------
+   SECTION HEADERS
+   ------------------------- */
+.weatherpanel-section-header {
+    font-weight: 600;
+    padding: 10px 0 6px 0;
+    margin: 10px 12px 6px 12px;
+    color: @theme_fg_color;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    border-bottom: 1px solid @borders_color;
+    background: none;
+    border-radius: 0;
+}
+
+/* -------------------------
+   ACTION BUTTONS (refresh, location, preferences)
+   ------------------------- */
+.weatherpanel-button-box {
+    padding: 10px 12px 14px 12px;
+    spacing: 8px;
+    justify-content: center;
+}
+
+/* Base look of each item (PopupBaseMenuItem) */
+.popup-menu-item.weatherpanel-button-action {
+    border-radius: 6px;
+    padding: 6px 10px;
+    background-color: transparent;
+}
+
+/* Hover – identical to GNOME’s system menu */
+.popup-menu-item.weatherpanel-button-action:hover {
+    background-color: @theme_selected_bg_color;
+}
+
+/* Active */
+.popup-menu-item.weatherpanel-button-action:active {
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Icon inside */
+.weatherpanel-button-action-icon {
+    icon-size: 16px;
+}
+
+/* -------------------------
+   FORECAST ROOT
+   ------------------------- */
+.weatherpanel-forecast-root {
+    padding: 0 12px 12px 12px;
+}
+
+.weatherpanel-forecast-scroll {
+    max-height: 360px;
+    padding-right: 8px;
+}
+
+/* -------------------------
+   DAILY FORECAST CARD
+   ------------------------- */
+.weatherpanel-forecast-card {
+    padding: 10px 12px;
+    margin-top: 8px;
+    border-radius: 8px;
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.weatherpanel-forecast-day-title {
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: @theme_fg_color;
+}
+
+/* -------------------------
+   HOURLY FORECAST
+   ------------------------- */
+.weatherpanel-forecast-hour-scroll {
+    padding: 6px 0;
+}
+
+.weatherpanel-forecast-hour-row {
+    spacing: 10px;
+    padding: 4px 0;
+}
+
+.weatherpanel-forecast-hour {
+    background-color: rgba(0, 0, 0, 0.12);
+    border-radius: 10px;
+    padding: 10px 8px;
+    min-width: 82px;
+    spacing: 4px;
+    text-align: center;
+    transition: all 150ms ease;
+}
+
+.weatherpanel-forecast-hour:hover {
+    background-color: rgba(0, 0, 0, 0.22);
+    transform: translateY(-1px);
+}
+
+.weatherpanel-forecast-hour-time {
+    color: @theme_fg_color;
+}
+
+.weatherpanel-forecast-hour-temp {
+    font-weight: 600;
+    color: @theme_fg_color;
+    margin: 3px 0 2px 0;
+}
+
+.weatherpanel-forecast-hour-summary {
+    color: @theme_unfocused_fg_color;
+}
+
+.weatherpanel-forecast-hour-wind,
+.weatherpanel-forecast-hour-pressure {
+    color: @theme_unfocused_fg_color;
+}
+
+.weatherpanel-forecast-hour StIcon {
+    icon-size: 30px;
+    margin: 4px 0 6px 0;
+    opacity: 0.95;
+}
+
+/* -------------------------
+   LOADING STATE
+   ------------------------- */
+.weatherpanel-forecast-loading {
+    padding: 20px;
+    opacity: 0.8;
+    font-style: italic;
+    text-align: center;
+    color: @theme_unfocused_fg_color;
+}
+
+/* -------------------------
+   ICON & LABEL HELPERS
+   ------------------------- */
+.weatherpanel-icon:ltr {
+    padding-right: 6px;
+}
+
+.weatherpanel-icon:rtl {
+    padding-left: 6px;
+}
+
+.weatherpanel-label {
+    padding-right: 6px;
+}
+

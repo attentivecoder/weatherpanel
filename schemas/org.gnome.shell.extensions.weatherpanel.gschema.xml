@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist gettext-domain="weatherpanel">
+
+  <!-- ===================== ENUMS ===================== -->
+
+  <enum id="org.gnome.shell.extensions.weatherpanel.position">
+    <value value="0" nick="far-left"/>
+    <value value="1" nick="left"/>
+    <value value="2" nick="center"/>
+    <value value="3" nick="right"/>
+    <value value="4" nick="far-right"/>
+  </enum>
+
+  <enum id="org.gnome.shell.extensions.weatherpanel.temperature-unit">
+    <value value="0" nick="celsius"/>
+    <value value="1" nick="fahrenheit"/>
+    <value value="2" nick="kelvin"/>
+  </enum>
+
+  <enum id="org.gnome.shell.extensions.weatherpanel.wind-unit">
+    <value value="0" nick="kmh"/>
+    <value value="1" nick="mph"/>
+    <value value="2" nick="ms"/>
+    <value value="3" nick="knots"/>
+  </enum>
+
+  <enum id="org.gnome.shell.extensions.weatherpanel.pressure-unit">
+    <value value="0" nick="hpa"/>
+    <value value="1" nick="inhg"/>
+    <value value="2" nick="bar"/>
+  </enum>
+
+  <!-- ===================== MAIN SCHEMA ===================== -->
+
+  <schema id="org.gnome.shell.extensions.weatherpanel"
+          path="/org/gnome/shell/extensions/weatherpanel/">
+
+    <!-- Locations -->
+    <key name="city" type="s">
+      <default>''</default>
+      <summary>City list JSON</summary>
+    </key>
+
+    <key name="actual-city" type="i">
+      <default>0</default>
+      <summary>Active city index</summary>
+    </key>
+
+    <!-- Panel -->
+    <key name="position-in-panel" enum="org.gnome.shell.extensions.weatherpanel.position">
+      <default>'center'</default>
+      <summary>Panel position</summary>
+    </key>
+
+    <!-- Popup -->
+    <key name="translate-condition" type="b">
+      <default>false</default>
+      <summary>Translate conditions</summary>
+    </key>
+
+    <key name="decimal-places" type="i">
+      <default>1</default>
+      <summary>Decimals</summary>
+    </key>
+
+    <key name="location-text-length" type="i">
+      <default>0</default>
+      <summary>Location truncation length</summary>
+    </key>
+
+    <!-- Units -->
+    <key name="unit" enum="org.gnome.shell.extensions.weatherpanel.temperature-unit">
+      <default>'celsius'</default>
+      <summary>Temperature unit</summary>
+    </key>
+
+    <key name="wind-speed-unit" enum="org.gnome.shell.extensions.weatherpanel.wind-unit">
+      <default>'kmh'</default>
+      <summary>Wind speed unit</summary>
+    </key>
+
+    <key name="pressure-unit" enum="org.gnome.shell.extensions.weatherpanel.pressure-unit">
+      <default>'hpa'</default>
+      <summary>Pressure unit</summary>
+    </key>
+
+    <!-- Forecast -->
+    <key name="disable-forecast" type="b">
+      <default>false</default>
+      <summary>Disable forecast</summary>
+    </key>
+
+    <key name="days-forecast" type="i">
+      <default>3</default>
+      <summary>Forecast days</summary>
+    </key>
+
+    <key name="expand-forecast" type="b">
+      <default>true</default>
+      <summary>Expand forecast</summary>
+    </key>
+
+    <!-- Refresh -->
+    <key name="refresh-interval-current" type="i">
+      <default>600</default>
+      <summary>Current refresh interval</summary>
+    </key>
+
+    <key name="refresh-interval-forecast" type="i">
+      <default>1800</default>
+      <summary>Forecast refresh interval</summary>
+    </key>
+    
+    <!-- Website -->
+    <key name="website-url" type="s">
+      <default>'https://open-meteo.com/'</default>
+      <summary>Website URL for provider</summary>
+      <description>The URL opened when clicking the provider button.</description>
+   </key>
+
+    <!-- Preferences UI -->
+    <key name="prefs-default-width" type="i">
+      <default>600</default>
+      <summary>Prefs width</summary>
+    </key>
+
+    <key name="prefs-default-height" type="i">
+      <default>650</default>
+      <summary>Prefs height</summary>
+    </key>
+
+  </schema>
+
+</schemalist>
+

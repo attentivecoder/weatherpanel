@@ -1,0 +1,47 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Build zip
+        run: |
+          zip -r weatherpanel@attentivecoder.zip \
+            extension.js \
+            controller.js \
+            metadata.json \
+            prefs.js \
+            settings.js \
+            stylesheet.css \
+            readme.md \
+            LICENSE \
+            media \
+            preferences \
+            providers \
+            services \
+            ui \
+            utils \
+            schemas \
+            -x "schemas/gschemas.compiled" \
+            -x ".git/*" \
+            -x ".gitignore" \
+            -x "test-soup.js" \
+            -x "node_modules/*" \
+            -x "package.json" \
+            -x "package-lock.json"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: weatherpanel@attentivecoder.zip

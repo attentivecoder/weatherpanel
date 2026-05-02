@@ -1,0 +1,23 @@
+{
+  "name": "weather-panel",
+  "version": "1.0.0",
+  "description": "*A clean, modern, GNOME‑native weather extension with a beautiful panel indicator and a fully redesigned menu.*",
+  "main": "controller.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/attentivecoder/weather-panel.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/attentivecoder/weather-panel/issues"
+  },
+  "homepage": "https://github.com/attentivecoder/weather-panel#readme",
+  "devDependencies": {
+    "jest": "^30.3.0"
+  }
+}

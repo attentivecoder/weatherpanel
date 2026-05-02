@@ -1,0 +1,11 @@
+{
+  "uuid": "weatherpanel@attentivecoder",
+  "name": "WeatherPanel",
+  "description": "A modern GNOME Shell weather extension with detailed current conditions, hourly and multi-day forecasts, and offline awareness.",
+  "version": 1,
+  "shell-version": ["45", "46", "47", "48", "49", "50"],
+  "url": "https://github.com/attentivecoder/weatherpanel",
+  "settings-schema": "org.gnome.shell.extensions.weatherpanel",
+  "gettext-domain": "weatherpanel"
+}
+
