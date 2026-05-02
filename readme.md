@@ -4,7 +4,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/GNOME-45–50-blue?logo=gnome&logoColor=white" />
   <img src="https://img.shields.io/badge/Provider-OpenMeteo-brightgreen?logo=cloudflare" />
-  <img src="https://img.shields.io/github/license/attentivecoder/weather-panel" />
+  <img src="https://img.shields.io/github/license/attentivecoder/weatherpanel" />
   <img src="https://img.shields.io/badge/version-1.0-blue" />
 </p>
 
@@ -81,7 +81,7 @@ It provides accurate weather data from **Open‑Meteo**, a redesigned panel menu
 
 Download the latest `.zip` from the Releases page:
 
-👉 https://github.com/attentivecoder/weather-panel/releases/latest
+👉 https://github.com/attentivecoder/weatherpanel/releases/latest
 
 Install it:
 
@@ -131,8 +131,8 @@ journalctl -f /usr/bin/gnome-shell
 ### Useful commands
 
 ```bash
-gsettings list-keys org.gnome.shell.extensions.weather-panel
-gsettings get org.gnome.shell.extensions.weather-panel unit
+gsettings list-keys org.gnome.shell.extensions.weatherpanel
+gsettings get org.gnome.shell.extensions.weatherpanel unit
 ```
 
 ## 🏷️ Packaging for release
