@@ -58,7 +58,7 @@
 
     <!-- Geocoding provider -->
     <key name="geocoding-provider" enum="org.gnome.shell.extensions.weatherpanel.geocoding">
-      <default>'nominatim'</default>
+      <default>'open-meteo'</default>
       <summary>Geocoding provider</summary>
     </key>
 
