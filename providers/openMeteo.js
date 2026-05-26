@@ -1,127 +1,39 @@
+// providers/openMeteo.js
 import GObject from 'gi://GObject';
-import GLib from 'gi://GLib';
-import Soup from 'gi://Soup?version=3.0';
+import BaseProvider from './baseProvider.js';
 
-export default GObject.registerClass({
-    Signals: {
-        'weather-updated': { param_types: [GObject.TYPE_JSOBJECT] },
-        'forecast-updated': { param_types: [GObject.TYPE_JSOBJECT] },
-        'error': { param_types: [GObject.TYPE_STRING] },
-    },
-}, class WeatherProvider extends GObject.Object {
+export default GObject.registerClass(
+class OpenMeteoProvider extends BaseProvider {
 
-    _init({ settings }) {
-        super._init();
+    /* ---------------------------------------------------------
+     * PROVIDER INFO
+     * --------------------------------------------------------- */
 
-        this._settings = settings;
-        this._session = new Soup.Session();
-        this._refreshSource = null;
-
-        this._current = null;
-        this._forecast = null;
+    getName() {
+        return 'Open‑Meteo';
     }
 
-    start() {
-        if (this._settings.get_string('city'))
-            this.refresh(true);
+    getWebsite() {
+        return 'https://open-meteo.com/';
     }
 
-    stop() {
-        if (this._refreshSource) {
-            GLib.Source.remove(this._refreshSource);
-            this._refreshSource = null;
-        }
-    }
+    /* ---------------------------------------------------------
+     * URL
+     * --------------------------------------------------------- */
 
-    async refresh(isCurrent) {
-        const data = await this._fetchWeather();
-
-        if (!data) {
-            this.emit('error', 'No weather data');
-            return false;
-        }
-
-        this._current = data.current;
-        this._forecast = data.forecast;
-
-        if (isCurrent)
-            this.emit('weather-updated', data);
-        else
-            this.emit('forecast-updated', data.forecast);
-
-        return true;
-    }
-
-    async _fetchWeather() {
-        const raw = this._settings.get_string('city');
-        if (!raw)
-            return null;
-
-        let cities;
-        try {
-            cities = JSON.parse(raw);
-        } catch {
-            this.emit('error', 'Invalid city data format');
-            return null;
-        }
-
-        const index = this._settings.get_int('actual-city') || 0;
-        const selected = cities[index] || cities[0];
-        if (!selected)
-            return null;
-
-        const lat = Number(selected.lat);
-        const lon = Number(selected.lon);
-        if (isNaN(lat) || isNaN(lon)) {
-            this.emit('error', 'Invalid coordinates');
-            return null;
-        }
-
-        const url =
+    _buildUrl(lat, lon) {
+        return (
             `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
             `&current_weather=true` +
             `&hourly=temperature_2m,weathercode,pressure_msl,windspeed_10m,winddirection_10m,windgusts_10m` +
             `&daily=weathercode,temperature_2m_max,temperature_2m_min,sunrise,sunset` +
-            `&timezone=auto`;
-
-        const json = await this._getJson(url);
-        if (!json) {
-            this.emit('error', 'No weather data');
-            return null;
-        }
-
-        return {
-            current: this._normalizeCurrent(json, selected.name),
-            forecast: this._normalizeForecast(json),
-        };
+            `&timezone=auto`
+        );
     }
 
-    async _getJson(url) {
-        try {
-            return await new Promise((resolve) => {
-                const msg = Soup.Message.new('GET', url);
-
-                this._session.send_and_read_async(
-                    msg,
-                    GLib.PRIORITY_DEFAULT,
-                    null,
-                    (session, res) => {
-                        try {
-                            const bytes = session.send_and_read_finish(res);
-                            const text = new TextDecoder().decode(bytes.get_data());
-                            resolve(JSON.parse(text));
-                        } catch {
-                            resolve(null);
-                        }
-                    }
-                );
-            });
-        } catch {
-            return null;
-        }
-    }
-
-    /* ---------------- NORMALIZATION ---------------- */
+    /* ---------------------------------------------------------
+     * NORMALIZATION — CURRENT
+     * --------------------------------------------------------- */
 
     _normalizeCurrent(json, locationName) {
         if (!json || !json.current_weather)
@@ -130,6 +42,7 @@ export default GObject.registerClass({
         const c = json.current_weather;
         const hourly = json.hourly;
 
+        // Find matching hourly index
         let idx = -1;
         if (hourly?.time?.length)
             idx = hourly.time.findIndex(t => t === c.time);
@@ -144,6 +57,7 @@ export default GObject.registerClass({
 
         return {
             location: locationName,
+
             summary: this._codeToSummary(c.weathercode),
             icon: this._mapIcon(c.weathercode),
 
@@ -164,6 +78,10 @@ export default GObject.registerClass({
         };
     }
 
+    /* ---------------------------------------------------------
+     * NORMALIZATION — FORECAST
+     * --------------------------------------------------------- */
+
     _normalizeForecast(json) {
         if (!json || !json.hourly)
             return [];
@@ -182,6 +100,7 @@ export default GObject.registerClass({
             if (date < now)
                 continue;
 
+            // 3‑hour steps
             if (date.getHours() % 3 !== 0)
                 continue;
 
@@ -221,7 +140,9 @@ export default GObject.registerClass({
         return result.slice(0, 4);
     }
 
-    /* ---------------- ICONS ---------------- */
+    /* ---------------------------------------------------------
+     * ICONS + SUMMARY
+     * --------------------------------------------------------- */
 
     _mapIcon(code) {
         const map = {

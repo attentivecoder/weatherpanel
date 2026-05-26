@@ -2,18 +2,20 @@ import Adw from 'gi://Adw';
 import Gtk from 'gi://Gtk';
 import GLib from 'gi://GLib';
 import Gio from 'gi://Gio';
-import Soup from 'gi://Soup?version=3.0';
 
 import { GeolocationService } from '../services/geolocation.js';
 
 const { gettext: _ } = imports.gettext;
+const GEO_OSM = 0;
+const GEO_OPEN_METEO = 1;
 
 export default class LocationsPage {
     constructor(parent, settings, extension) {
         this._window = parent;
         this._settings = settings;
         this._extension = extension;
-        this._geolocation = new GeolocationService();
+
+        this._geolocation = new GeolocationService(settings);
 
         this._actualCity = this._settings.get_int('actual-city');
         this._selectedResult = null;
@@ -63,6 +65,15 @@ export default class LocationsPage {
             this._actualCity = this._settings.get_int('actual-city');
             this._refreshLocations();
         });
+    }
+    
+    _getProviderLabel() {
+        const provider = this._settings.get_enum('geocoding-provider');
+
+        if (provider === GEO_OPEN_METEO)
+            return _("Open‑Meteo");
+
+        return _("OpenStreetMap");
     }
 
     _getCities() {
@@ -296,6 +307,15 @@ export default class LocationsPage {
             margin_start: 12,
             margin_end: 12,
         });
+        
+        const providerLabel = new Gtk.Label({
+            label: _("Search provider: ") + this._getProviderLabel(),
+            xalign: 0,
+            css_classes: ['dim-label'],
+        });
+
+        vbox.append(providerLabel);
+
 
         const entry = new Gtk.Entry({
             placeholder_text: _('Search city…'),
@@ -332,7 +352,7 @@ export default class LocationsPage {
                 GLib.source_remove(timeout);
 
             timeout = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 300, () => {
-                this._searchCity(entry.text, list);
+                this._performSearch(entry.text, list);
                 return GLib.SOURCE_REMOVE;
             });
         });
@@ -347,10 +367,10 @@ export default class LocationsPage {
         dialog.show();
 
         if (initialText.length)
-            this._searchCity(initialText, list);
+            this._performSearch(initialText, list);
     }
 
-    async _searchCity(query, list) {
+    async _performSearch(query, list) {
         let child;
         while ((child = list.get_first_child()) !== null)
             list.remove(child);
@@ -365,27 +385,8 @@ export default class LocationsPage {
             return;
         }
 
-        const url =
-            `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=5&q=${encodeURIComponent(query)}`;
-
         try {
-            const session = Soup.Session.new();
-            const msg = Soup.Message.new('GET', url);
-
-            msg.request_headers.append("User-Agent", "weatherpanel-extension");
-
-            const bytes = await new Promise((resolve, reject) => {
-                session.send_and_read_async(msg, GLib.PRIORITY_DEFAULT, null, (s, res) => {
-                    try {
-                        resolve(s.send_and_read_finish(res));
-                    } catch (e) {
-                        reject(e);
-                    }
-                });
-            });
-
-            const text = new TextDecoder().decode(bytes.get_data());
-            let results = JSON.parse(text);
+            const results = await this._geolocation.searchCity(query);
 
             if (!results.length) {
                 list.append(new Adw.ActionRow({
@@ -395,21 +396,13 @@ export default class LocationsPage {
             }
 
             for (const r of results) {
-                const title = r.display_name;
-                const subtitle = `${r.lat}, ${r.lon}`;
-
                 const row = new Adw.ActionRow({
-                    title,
-                    subtitle,
+                    title: r.name,
+                    subtitle: `${r.lat}, ${r.lon}`,
                     activatable: true,
                 });
 
-                row._resultData = {
-                    name: title,
-                    lat: parseFloat(r.lat),
-                    lon: parseFloat(r.lon),
-                };
-
+                row._resultData = r;
                 list.append(row);
             }
 

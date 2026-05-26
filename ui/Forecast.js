@@ -46,13 +46,16 @@ export class Forecast {
     /* ---------------- SETTINGS REACTIVE ---------------- */
 
     _connectSettings() {
-        if (!this._settings?._settings)
+        if (!this._settings)
             return;
 
-        if (this._signals.length > 0)
-            return;
+        // Disconnect old signals
+        for (const [obj, id] of this._signals) {
+            try { obj.disconnect(id); } catch (_) {}
+        }
+        this._signals = [];
 
-        const settings = this._settings._settings;
+        const settings = this._settings;
 
         const id = settings.connect('changed', (_, key) => {
             if (
@@ -96,7 +99,7 @@ export class Forecast {
     /* ---------------- RENDER ---------------- */
 
     _render() {
-        if (!this._container || this._container._destroyed)
+        if (!this._container || !this._container.get_parent())
             return;
 
         this._clear();
@@ -107,15 +110,15 @@ export class Forecast {
         }
 
         const tempUnit = ['celsius', 'fahrenheit', 'kelvin'][
-            this._settings?.get_enum('unit') ?? 0
+            this._settings.get_enum('unit')
         ];
 
         const windUnit = ['kmh', 'mph', 'ms', 'knots'][
-            this._settings?.get_enum('wind-speed-unit') ?? 0
+            this._settings.get_enum('wind-speed-unit')
         ];
 
         const pressureUnit = ['hpa', 'inhg', 'bar'][
-            this._settings?.get_enum('pressure-unit') ?? 0
+            this._settings.get_enum('pressure-unit')
         ];
 
         for (const day of this._data) {
@@ -134,7 +137,7 @@ export class Forecast {
                 style_class: 'weatherpanel-forecast-day-title',
             }));
 
-           const hourScroll = new St.ScrollView({
+            const hourScroll = new St.ScrollView({
                 hscrollbar_policy: St.PolicyType.NEVER,
                 vscrollbar_policy: St.PolicyType.NEVER,
                 overlay_scrollbars: true,
@@ -211,7 +214,7 @@ export class Forecast {
     /* ---------------- CLEAN ---------------- */
 
     _clear() {
-        if (!this._container || this._container._destroyed)
+        if (!this._container || !this._container.get_parent())
             return;
 
         this._container.destroy_all_children();

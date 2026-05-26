@@ -27,6 +27,9 @@ export default class SettingsPage {
             title: _('General'),
         });
 
+        //
+        // Refresh intervals
+        //
         const currentSpin = this._spin(
             10, 1440, 1,
             this._settings.get_int('refresh-interval-current') / 60
@@ -64,6 +67,58 @@ export default class SettingsPage {
         group.add(this._row(_('Current Weather Refresh (min)'), '', currentSpin));
         group.add(this._row(_('Forecast Refresh (min)'), '', forecastSpin));
         group.add(this._row(_('Disable Forecast'), '', forecastSwitch));
+
+        //
+        // Weather Provider
+        //
+        const weatherProviderRow = new Adw.ComboRow({
+            title: _("Weather Provider"),
+            subtitle: _("Choose which API to fetch weather data from"),
+            model: Gtk.StringList.new(["Open‑Meteo", "Yr.no"]),
+            selected: this._settings.get_enum("provider"),
+        });
+
+        weatherProviderRow.connect("notify::selected", row => {
+            this._settings.set_enum("provider", row.selected);
+        });
+
+        group.add(weatherProviderRow);
+
+        //
+        // Location Search Provider
+        //
+        const locationSearchRow = new Adw.ComboRow({
+            title: _("Location Search Provider"),
+            subtitle: _("Choose how location search behaves"),
+            model: Gtk.StringList.new([
+                "OpenStreetMap",
+                "Open‑Meteo"
+            ]),
+            selected: this._settings.get_enum("geocoding-provider"),
+        });
+
+
+        locationSearchRow.connect("notify::selected", row => {
+            this._settings.set_enum("geocoding-provider", row.selected);
+        });
+
+        group.add(locationSearchRow);
+
+        //
+        // IP Geolocation Provider
+        //
+        const ipGeoRow = new Adw.ComboRow({
+            title: _("IP Geolocation Provider"),
+            subtitle: _("Choose how your approximate location is detected"),
+            model: Gtk.StringList.new(["ipapi.co", "ipinfo.io"]),
+            selected: this._settings.get_enum("ipgeo-provider"),
+        });
+
+        ipGeoRow.connect("notify::selected", row => {
+            this._settings.set_enum("ipgeo-provider", row.selected);
+        });
+
+        group.add(ipGeoRow);
 
         this.page.add(group);
     }

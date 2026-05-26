@@ -2,6 +2,21 @@
 <schemalist gettext-domain="weatherpanel">
 
   <!-- ===================== ENUMS ===================== -->
+  
+  <enum id="org.gnome.shell.extensions.weatherpanel.provider">
+    <value value="0" nick="open-meteo"/>
+    <value value="1" nick="yrno"/>
+  </enum>
+
+  <enum id="org.gnome.shell.extensions.weatherpanel.geocoding">
+    <value value="0" nick="nominatim"/>
+    <value value="1" nick="open-meteo"/>
+  </enum>
+
+  <enum id="org.gnome.shell.extensions.weatherpanel.ipgeo">
+    <value value="0" nick="ipapi"/>
+    <value value="1" nick="ipinfo"/>
+  </enum>
 
   <enum id="org.gnome.shell.extensions.weatherpanel.position">
     <value value="0" nick="far-left"/>
@@ -34,6 +49,24 @@
 
   <schema id="org.gnome.shell.extensions.weatherpanel"
           path="/org/gnome/shell/extensions/weatherpanel/">
+          
+    <!-- Weather provider -->
+    <key name="provider" enum="org.gnome.shell.extensions.weatherpanel.provider">
+      <default>'open-meteo'</default>
+      <summary>Weather provider</summary>
+    </key>
+
+    <!-- Geocoding provider -->
+    <key name="geocoding-provider" enum="org.gnome.shell.extensions.weatherpanel.geocoding">
+      <default>'nominatim'</default>
+      <summary>Geocoding provider</summary>
+    </key>
+
+    <!-- IP geolocation provider -->
+    <key name="ipgeo-provider" enum="org.gnome.shell.extensions.weatherpanel.ipgeo">
+      <default>'ipapi'</default>
+      <summary>IP geolocation provider</summary>
+    </key>
 
     <!-- Locations -->
     <key name="city" type="s">
@@ -110,13 +143,6 @@
       <default>1800</default>
       <summary>Forecast refresh interval</summary>
     </key>
-    
-    <!-- Website -->
-    <key name="website-url" type="s">
-      <default>'https://open-meteo.com/'</default>
-      <summary>Website URL for provider</summary>
-      <description>The URL opened when clicking the provider button.</description>
-   </key>
 
     <!-- Preferences UI -->
     <key name="prefs-default-width" type="i">
