@@ -5,12 +5,16 @@ import Soup from 'gi://Soup?version=3.0';
 /**
  * GeolocationService
  *
- * - Primary: ipapi.co (city + country + coords)
- * - Fallback: ipinfo.io
- * - City lookup: Open‑Meteo forward search
+ * - Primary IP geolocation: ipapi.co
+ * - Fallback IP geolocation: ipinfo.io
+ * - Reverse geocoding: Nominatim (OpenStreetMap)
+ * - Forward geocoding (search): Nominatim (OpenStreetMap)
  *
- * No reverse geocoding (Open‑Meteo reverse is unreliable).
+ * Notes:
+ * - All network requests include a User-Agent header (required by Nominatim and some IP APIs)
+ * - Returns null on failure instead of throwing
  */
+
 export class GeolocationService {
     constructor() {
         this._session = new Soup.Session();
@@ -20,11 +24,11 @@ export class GeolocationService {
      * 1. Get device location using IP geolocation
      * --------------------------------------------------------- */
     async getCurrentLocation() {
-        // 1. Try ipapi.co (best)
+        // 1. Try ipapi.co
         try {
             const json = await this._getJson('https://ipapi.co/json/');
 
-            if (json && json.city) {
+            if (json && json.city && json.latitude && json.longitude) {
                 return {
                     city: json.city,
                     region: json.region ?? null,
@@ -35,37 +39,41 @@ export class GeolocationService {
                     raw: json,
                 };
             }
-        } catch (_) {}
+        } catch (e) {
+            log('ipapi.co failed: ' + e.message);
+        }
 
         // 2. Fallback to ipinfo.io
         try {
             const json = await this._getJson('https://ipinfo.io/json');
 
-            if (!json || !json.loc)
-                throw new Error('Invalid IP geolocation response');
+            if (json && json.loc) {
+                const [lat, lon] = json.loc.split(',').map(Number);
 
-            const [lat, lon] = json.loc.split(',').map(Number);
-
-            return {
-                city: json.city ?? null,
-                region: json.region ?? null,
-                country: json.country ?? null,
-                lat,
-                lon,
-                accuracy: 50000,
-                raw: json,
-            };
-
+                return {
+                    city: json.city ?? null,
+                    region: json.region ?? null,
+                    country: json.country ?? null,
+                    lat,
+                    lon,
+                    accuracy: 50000,
+                    raw: json,
+                };
+            }
         } catch (e) {
-            throw new Error('Failed to get IP location: ' + e.message);
+            log('ipinfo.io failed: ' + e.message);
         }
+
+        // 3. Final fallback
+        return null;
     }
 
+
     /* ---------------------------------------------------------
-     * 2. Convert city name → canonical city object (Open‑Meteo)
+     *  2. Convert coordinates → canonical city object (Nominatim)
      * --------------------------------------------------------- */
    async reverseGeocode(loc) {
-        if (!loc.lat || !loc.lon)
+        if (!loc || !loc.lat || !loc.lon)
             return null;
 
         const url =
@@ -107,7 +115,7 @@ export class GeolocationService {
             const msg = Soup.Message.new('GET', url);
 
             // REQUIRED by Nominatim
-            msg.request_headers.append("User-Agent", "gnome-openweather-extension");
+            msg.request_headers.append("User-Agent", "weatherpanel");
 
             this._session.send_and_read_async(
                 msg,
@@ -169,9 +177,12 @@ export class GeolocationService {
     /* ---------------------------------------------------------
      * HTTP helper (Soup)
      * --------------------------------------------------------- */
-    _getJson(url) {
-        return new Promise((resolve, reject) => {
+   _getJson(url) {
+        return new Promise((resolve) => {
             const msg = Soup.Message.new('GET', url);
+
+            // REQUIRED by ipapi.co (otherwise returns empty or blocked)
+            msg.request_headers.append("User-Agent", "weatherpanel");
 
             this._session.send_and_read_async(
                 msg,
@@ -183,11 +194,12 @@ export class GeolocationService {
                         const text = new TextDecoder().decode(bytes.get_data());
                         resolve(JSON.parse(text));
                     } catch (e) {
-                        reject(e);
+                        resolve(null);
                     }
                 }
             );
         });
     }
+
 }
 

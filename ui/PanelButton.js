@@ -23,7 +23,7 @@ export default class PanelButton {
 
         this._signals = [];
         this._lastData = null;
-        this._timestampTimer = null
+        this._timestampTimer = null;
 
         this.actor = new St.Button({
             style_class: 'panel-button weatherpanel-button',
@@ -59,12 +59,11 @@ export default class PanelButton {
     }
 
     start() {
-    if (this._hasCity())
-        this._provider?.refresh?.();
+        if (this._hasCity())
+            this._provider.refresh(true);
 
         this._startTimestampTimer();
     }
-
 
     stop() {
         this._disconnectSignals();
@@ -85,6 +84,8 @@ export default class PanelButton {
         this.actor.destroy();
     }
 
+    /* ---------------- PANEL ---------------- */
+
     _buildPanel() {
         this._icon = new St.Icon({
             icon_name: 'weather-clear-symbolic',
@@ -102,15 +103,11 @@ export default class PanelButton {
             style_class: 'panel-status-menu-box',
             y_align: Clutter.ActorAlign.CENTER,
             reactive: false,
-            x_expand: false,
-            y_expand: false,
         });
 
         this._iconBox = new St.BoxLayout({
             reactive: false,
             y_align: Clutter.ActorAlign.CENTER,
-            x_expand: false,
-            y_expand: false,
         });
 
         this._iconBox.add_child(this._icon);
@@ -125,6 +122,8 @@ export default class PanelButton {
         }
     }
 
+    /* ---------------- MENU ---------------- */
+
     _buildMenu() {
         if (this.menu) {
             this.menu.destroy();
@@ -134,7 +133,7 @@ export default class PanelButton {
         this.menu = new PopupMenu.PopupMenu(this.actor, 0.5, St.Side.TOP);
         this.menu.actor.hide();
         Main.uiGroup.add_child(this.menu.actor);
-       
+
         Main.panel.menuManager.addMenu(this.menu);
 
         this._root = new St.BoxLayout({
@@ -167,7 +166,7 @@ export default class PanelButton {
             style_class: 'weatherpanel-forecast-root',
         });
         this._root.add_child(this._forecastSection);
-        
+
         this._buildButtons();
         this._renderCityHeader();
     }
@@ -180,7 +179,6 @@ export default class PanelButton {
         });
 
         this._buttonBox.set_x_align(Clutter.ActorAlign.CENTER);
-        this._buttonBox.set_x_expand(true);
 
         this._locationBtn = this._makeStButton('find-location-symbolic', _('Locations'));
         this._refreshBtn  = this._makeStButton('view-refresh-symbolic', _('Refresh'));
@@ -210,8 +208,6 @@ export default class PanelButton {
             label: `Weather API: ${providerName}`,
         });
 
-        this._providerRow.set_x_align(Clutter.ActorAlign.START);
-
         this._providerRow.connect('clicked', () => {
             this.menu.close();
             this._openWebsite();
@@ -229,6 +225,8 @@ export default class PanelButton {
 
         this._root.add_child(this._bottomBox);
 
+        /* ---------------- BUTTON ACTIONS ---------------- */
+
         this._locationBtn.connect('activate', async () => {
             this.menu.close();
             const networkMonitor = Gio.NetworkMonitor.get_default();
@@ -240,7 +238,19 @@ export default class PanelButton {
 
             try {
                 const loc = await this._extension.geolocation.getCurrentLocation();
+
+                if (!loc) {
+                    Main.notify(_('Could not determine your location'));
+                    return;
+                }
+
                 const city = await this._extension.geolocation.reverseGeocode(loc);
+
+                if (!city) {
+                    Main.notify(_('Could not determine your location'));
+                    return;
+                }
+
 
                 if (!city || !city.name || city.name === 'Unknown location') {
                     Main.notify(_('Could not determine your location'));
@@ -294,14 +304,13 @@ export default class PanelButton {
                 return;
             }
 
-            try {
-                Main.notify(_('Refreshing weather…'));
-                await this._provider?.refresh?.(true);
+            Main.notify(_('Refreshing weather…'));
+            const ok = await this._provider.refresh(true);
+
+            if (ok)
                 Main.notify(_('Weather refreshed'));
-            } catch (e) {
-                logError(e);
+            else
                 Main.notify(_('Refresh failed'));
-            }
         });
 
         this._prefsBtn.connect('activate', () => {
@@ -314,7 +323,6 @@ export default class PanelButton {
         else
             this._disableButton(this._refreshBtn);
     }
-     
 
     _makeStButton(iconName, accessibleName) {
         const item = new PopupMenu.PopupBaseMenuItem({
@@ -333,93 +341,12 @@ export default class PanelButton {
         return item;
     }
 
-
-
-
-
-    _disableButton(btn) {
-        btn.reactive = false;
-        btn.can_focus = false;
-        btn.add_style_pseudo_class('disabled');
-    }
-
-    _enableButton(btn) {
-        btn.reactive = true;
-        btn.can_focus = true;
-        btn.remove_style_pseudo_class('disabled');
-    }
-
-    _renderCityHeader() {
-        const city = this._getActiveCity();
-
-        this._cityItem.destroy_all_children();
-
-        const box = new St.BoxLayout({
-            vertical: true,
-            x_expand: true,
-            style_class: 'weatherpanel-city-box',
-        });
-
-        box.add_child(new St.Label({
-            text: city ? city.name : _('No location selected'),
-            style_class: 'weatherpanel-city-header',
-        }));
-
-        this._cityItem.add_child(box);
-    }
-    
-    _startTimestampTimer() {
-        if (this._timestampTimer)
-            GLib.source_remove(this._timestampTimer);
-
-        this._timestampTimer = GLib.timeout_add_seconds(
-            GLib.PRIORITY_DEFAULT,
-            60,
-            () => {
-                this._updateStatusLabel();
-                return GLib.SOURCE_CONTINUE;
-            }
-        );
-    }
-
-    _updateStatusLabel() {
-        if (!this._statusLabel)
-            return;
-
-        const time = this._lastData?.current?.time;
-        if (!time) {
-            this._statusLabel.text = '';
-            return;
-        }
-
-        const relative = this._formatUpdateTime(time);
-        const networkMonitor = Gio.NetworkMonitor.get_default();
-
-        if (networkMonitor.network_available)
-            this._statusLabel.text = _('Updated %s').format(relative);
-        else
-            this._statusLabel.text = _('Offline — last updated %s').format(relative);
-    }
-
-    _renderOfflineState() {
-        if (!this._lastData) {
-            this._currentItem.destroy_all_children();
-            this._currentItem.add_child(new St.Label({
-                text: _('No data available'),
-                style_class: 'weatherpanel-current-details',
-            }));
-            this._updateStatusLabel();
-            return;
-        }
-
-        this._updateUI(this._lastData);
-        this._updateStatusLabel();
-    }
+    /* ---------------- SIGNALS ---------------- */
 
     _bindSignals() {
         const settings = this._settings._settings;
         const networkMonitor = Gio.NetworkMonitor.get_default();
-        
+
         const menuId = this.menu.connect('open-state-changed', (menu, isOpen) => {
             if (isOpen)
                 this.actor.add_style_pseudo_class('active');
@@ -428,7 +355,6 @@ export default class PanelButton {
         });
 
         this._signals.push([this.menu, menuId]);
-
 
         const settingsId = settings.connect('changed', (_, key) => {
             if (
@@ -448,10 +374,11 @@ export default class PanelButton {
             if (key === 'city' || key === 'actual-city') {
                 this._renderCityHeader();
                 this._updateUI(this._lastData);
-                this._provider?.refresh?.(true);
+                this._provider.refresh(true);
                 return;
             }
         });
+
         this._signals.push([settings, settingsId]);
 
         const netId = networkMonitor.connect('network-changed', () => {
@@ -462,7 +389,7 @@ export default class PanelButton {
                 if (this._lastData)
                     this._updateUI(this._lastData);
 
-                this._provider?.refresh?.(true);
+                this._provider.refresh(true);
             } else {
                 this._disableButton(this._refreshBtn);
                 this._disableButton(this._locationBtn);
@@ -478,6 +405,8 @@ export default class PanelButton {
 
         this._signals.push([networkMonitor, netId]);
 
+        /* ---------------- PROVIDER SIGNALS ---------------- */
+
         if (this._provider?.connect) {
             const weatherId = this._provider.connect('weather-updated', (_p, data) => {
                 const now = new Date().toISOString();
@@ -490,7 +419,6 @@ export default class PanelButton {
                 this._updateUI(data);
                 this._updateStatusLabel();
             });
-
 
             const forecastId = this._provider.connect('forecast-updated', (_p, forecast) => {
                 if (!this._lastData)
@@ -508,6 +436,8 @@ export default class PanelButton {
                     return;
                 }
 
+                const networkMonitor = Gio.NetworkMonitor.get_default();
+
                 if (!networkMonitor.network_available) {
                     this._label.text = _('Offline');
                     this._icon.icon_name = 'network-offline-symbolic';
@@ -520,8 +450,8 @@ export default class PanelButton {
             });
 
             this._signals.push([this._provider, weatherId]);
-            this._signals.push([this._provider, errorId]);
             this._signals.push([this._provider, forecastId]);
+            this._signals.push([this._provider, errorId]);
         }
 
         if (!networkMonitor.network_available) {
@@ -541,6 +471,8 @@ export default class PanelButton {
         }
         this._signals = [];
     }
+
+    /* ---------------- UI UPDATES ---------------- */
 
     _updateUI(data) {
         if (!data || !data.current)
@@ -614,27 +546,6 @@ export default class PanelButton {
         this._currentItem.add_child(root);
     }
 
-    _formatUpdateTime(isoString) {
-        if (!isoString)
-            return '';
-
-        const date = new Date(isoString);
-        const now = Date.now();
-        const diffMs = now - date.getTime();
-        const diffMin = Math.floor(diffMs / 60000);
-
-        if (diffMin < 1)
-            return _('just now');
-
-        if (diffMin < 60)
-            return _('%d min ago').format(diffMin);
-
-        return date.toLocaleTimeString([], {
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-    }
-
     _renderForecast(forecast) {
         if (!this._forecastSection)
             return;
@@ -671,6 +582,112 @@ export default class PanelButton {
         this._forecastSection.add_child(this._forecastWidget.actor);
         this._updateStatusLabel();
     }
+    
+    _renderCityHeader() {
+        const city = this._getActiveCity();
+
+        this._cityItem.destroy_all_children();
+
+        const box = new St.BoxLayout({
+            vertical: true,
+            x_expand: true,
+            style_class: 'weatherpanel-city-box',
+        });
+
+        box.add_child(new St.Label({
+            text: city ? city.name : _('No location selected'),
+            style_class: 'weatherpanel-city-header',
+        }));
+
+        this._cityItem.add_child(box);
+    }
+
+
+    /* ---------------- STATUS ---------------- */
+
+    _startTimestampTimer() {
+        if (this._timestampTimer)
+            GLib.source_remove(this._timestampTimer);
+
+        this._timestampTimer = GLib.timeout_add_seconds(
+            GLib.PRIORITY_DEFAULT,
+            60,
+            () => {
+                this._updateStatusLabel();
+                return GLib.SOURCE_CONTINUE;
+            }
+        );
+    }
+
+    _updateStatusLabel() {
+        if (!this._statusLabel)
+            return;
+
+        const time = this._lastData?.current?.time;
+        if (!time) {
+            this._statusLabel.text = '';
+            return;
+        }
+
+        const relative = this._formatUpdateTime(time);
+        const networkMonitor = Gio.NetworkMonitor.get_default();
+
+        if (networkMonitor.network_available)
+            this._statusLabel.text = _('Updated %s').format(relative);
+        else
+            this._statusLabel.text = _('Offline — last updated %s').format(relative);
+    }
+
+    _formatUpdateTime(isoString) {
+        if (!isoString)
+            return '';
+
+        const date = new Date(isoString);
+        const now = Date.now();
+        const diffMs = now - date.getTime();
+        const diffMin = Math.floor(diffMs / 60000);
+
+        if (diffMin < 1)
+            return _('just now');
+
+        if (diffMin < 60)
+            return _('%d min ago').format(diffMin);
+
+        return date.toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
+
+    _renderOfflineState() {
+        if (!this._lastData) {
+            this._currentItem.destroy_all_children();
+            this._currentItem.add_child(new St.Label({
+                text: _('No data available'),
+                style_class: 'weatherpanel-current-details',
+            }));
+            this._updateStatusLabel();
+            return;
+        }
+
+        this._updateUI(this._lastData);
+        this._updateStatusLabel();
+    }
+
+    /* ---------------- HELPERS ---------------- */
+    
+    _disableButton(btn) {
+        btn.reactive = false;
+        btn.can_focus = false;
+        btn.add_style_pseudo_class('disabled');
+    }
+
+    _enableButton(btn) {
+        btn.reactive = true;
+        btn.can_focus = true;
+        btn.remove_style_pseudo_class('disabled');
+    }
+
 
     _openPrefs() {
         try {
