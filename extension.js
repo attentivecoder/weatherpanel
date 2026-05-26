@@ -17,6 +17,9 @@ export default class WeatherPanel extends Extension {
     disable() {
         this._controller?.disable();
         this._controller = null;
+
+        this.geolocation = null;
+        this.settings = null;
     }
 
     async setCurrentLocation() {
