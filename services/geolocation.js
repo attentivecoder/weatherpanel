@@ -31,11 +31,7 @@ export class GeolocationService {
      * --------------------------------------------------------- */
 
     abort() {
-        try {
             this._session?.abort();
-        } catch (e) {
-            logError(e);
-        }
     }
 
     destroy() {

@@ -814,7 +814,7 @@ export default class PanelButton {
         this._settings.disconnectObject(this);
         this._disconnectProviderSignals();        
         
-        this._geolocation?.destroy?.();
+        this._geolocation?.destroy.();
 
         if (this._timestampTimer) {
             GLib.source_remove(
