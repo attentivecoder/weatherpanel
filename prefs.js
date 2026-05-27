@@ -22,8 +22,7 @@ export default class OpenWeatherPrefs extends ExtensionPreferences {
         const settings = this.getSettings();
 
         const settingsPage = new SettingsPage(settings);
-        const extension = this._extension;
-        const locationsPage = new LocationsPage(window, settings, extension);
+        const locationsPage = new LocationsPage(window, settings);
 
         const prefsWidth = settings.get_int('prefs-default-width');
         const prefsHeight = settings.get_int('prefs-default-height');

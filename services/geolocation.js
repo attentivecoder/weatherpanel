@@ -1,21 +1,17 @@
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
-import Soup from 'gi://Soup?version=3.0';
+import Soup from 'gi://Soup';
 
 /**
- * GeolocationService (dynamic provider version)
+ * GeolocationService (dynamic provider)
  *
  * - IP geolocation provider (user‑selectable):
  *      • ipapi.co
  *      • ipinfo.io
  *
  * - Geocoding provider (user‑selectable):
- *      • OpenStreetMap
+ *      • OpenStreetMap (Nominatim)
  *      • Open‑Meteo geocoding
- *
- * Notes:
- * - All network requests include a User-Agent header.
- * - Returns null on failure instead of throwing.
  */
 
 const IP_API = 0;
@@ -31,27 +27,44 @@ export class GeolocationService {
     }
 
     /* ---------------------------------------------------------
-     * 1. Get device location using IP geolocation
+     * LIFECYCLE
      * --------------------------------------------------------- */
+
+    abort() {
+        try {
+            this._session?.abort();
+        } catch (e) {
+            logError(e);
+        }
+    }
+
+    destroy() {
+        this.abort();
+        this._session = null;
+    }
+
+    /* ---------------------------------------------------------
+     * 1. IP GEOLOCATION
+     * --------------------------------------------------------- */
+
     async getCurrentLocation() {
+        if (!this._session)
+            return null;
+
         const provider = this._settings.get_enum('ipgeo-provider');
 
-        if (provider === IP_API) {
-            // ipapi.co first, fallback ipinfo.io
-            const loc = await this._tryIpApi() ?? await this._tryIpInfo();
-            return loc;
-        } else {
-            // ipinfo.io first, fallback ipapi.co
-            const loc = await this._tryIpInfo() ?? await this._tryIpApi();
-            return loc;
-        }
+        if (provider === IP_API)
+            return await this._tryIpApi() ?? await this._tryIpInfo();
+
+        return await this._tryIpInfo() ?? await this._tryIpApi();
     }
 
     async _tryIpApi() {
         try {
             const json = await this._getJson('https://ipapi.co/json/');
+            if (!this._session) return null;
 
-            if (json && json.city && json.latitude && json.longitude) {
+            if (json?.city && json?.latitude && json?.longitude) {
                 return {
                     city: json.city,
                     region: json.region ?? null,
@@ -65,14 +78,16 @@ export class GeolocationService {
         } catch (e) {
             log('ipapi.co failed: ' + e.message);
         }
+
         return null;
     }
 
     async _tryIpInfo() {
         try {
             const json = await this._getJson('https://ipinfo.io/json');
+            if (!this._session) return null;
 
-            if (json && json.loc) {
+            if (json?.loc) {
                 const [lat, lon] = json.loc.split(',').map(Number);
 
                 return {
@@ -88,14 +103,19 @@ export class GeolocationService {
         } catch (e) {
             log('ipinfo.io failed: ' + e.message);
         }
+
         return null;
     }
 
     /* ---------------------------------------------------------
-     * 2. Reverse geocoding (coordinates → city)
+     * 2. REVERSE GEOCODING
      * --------------------------------------------------------- */
+
     async reverseGeocode(loc) {
-        if (!loc || !loc.lat || !loc.lon)
+        if (!this._session)
+            return null;
+
+        if (!loc?.lat || !loc?.lon)
             return null;
 
         const provider = this._settings.get_enum('geocoding-provider');
@@ -105,7 +125,6 @@ export class GeolocationService {
             if (result?.name !== 'Unknown')
                 return result;
 
-            // Fallback to OpenStreetMap
             return await this._reverseGeocodeNominatim(loc);
         }
 
@@ -113,7 +132,6 @@ export class GeolocationService {
         if (result?.name !== 'Unknown')
             return result;
 
-        // Fallback to Open‑Meteo
         return await this._reverseGeocodeOpenMeteo(loc);
     }
 
@@ -121,7 +139,9 @@ export class GeolocationService {
         const url =
             `https://nominatim.openstreetmap.org/reverse?format=json&lat=${loc.lat}&lon=${loc.lon}&addressdetails=1`;
 
-        const json = await this._getJsonWithUA(url);
+        const json = await this._getJson(url);
+        if (!this._session)
+            return null;
 
         if (json?.address) {
             const addr = json.address;
@@ -151,29 +171,14 @@ export class GeolocationService {
         };
     }
 
-    _buildDisplayName(r) {
-        const parts = [];
-
-        // Postal code + name if available
-        if (r.postcodes?.length)
-            parts.push(`${r.postcodes[0]} ${r.name}`);
-        else
-            parts.push(r.name);
-
-        if (r.admin3) parts.push(r.admin3);
-        if (r.admin2) parts.push(r.admin2);
-        if (r.admin1) parts.push(r.admin1);
-        if (r.country) parts.push(r.country);
-
-        return parts.join(', ');
-    }
-
     async _reverseGeocodeOpenMeteo(loc) {
         const url =
             `https://geocoding-api.open-meteo.com/v1/reverse?` +
             `latitude=${loc.lat}&longitude=${loc.lon}&language=en&format=json`;
 
         const json = await this._getJson(url);
+        if (!this._session)
+            return null;
 
         if (json?.results?.length > 0) {
             const r = json.results[0];
@@ -196,10 +201,14 @@ export class GeolocationService {
     }
 
     /* ---------------------------------------------------------
-     * 3. Forward geocoding (search by city name or postal code)
+     * 3. FORWARD GEOCODING
      * --------------------------------------------------------- */
+
     async searchCity(query) {
-        if (!query || !query.trim())
+        if (!this._session)
+            return [];
+
+        if (!query?.trim())
             return [];
 
         const provider = this._settings.get_enum('geocoding-provider');
@@ -209,7 +218,6 @@ export class GeolocationService {
             if (results.length > 0)
                 return results;
 
-            // Fallback to OpenStreetMap
             return await this._searchNominatim(query);
         }
 
@@ -217,7 +225,6 @@ export class GeolocationService {
         if (results.length > 0)
             return results;
 
-        // Fallback to Open‑Meteo
         return await this._searchOpenMeteo(query);
     }
 
@@ -226,9 +233,11 @@ export class GeolocationService {
             `https://nominatim.openstreetmap.org/search?` +
             `format=json&addressdetails=1&limit=10&q=${encodeURIComponent(query)}`;
 
-        const json = await this._getJsonWithUA(url);
+        const json = await this._getJson(url);
+        if (!this._session)
+            return [];
 
-        if (!Array.isArray(json) || json.length === 0)
+        if (!Array.isArray(json))
             return [];
 
         return json.map(r => {
@@ -258,6 +267,8 @@ export class GeolocationService {
             `name=${encodeURIComponent(query)}&count=10&language=en&format=json`;
 
         const json = await this._getJson(url);
+        if (!this._session)
+            return [];
 
         if (!json?.results)
             return [];
@@ -272,11 +283,19 @@ export class GeolocationService {
     }
 
     /* ---------------------------------------------------------
-     * HTTP helpers
+     * HELPERS
      * --------------------------------------------------------- */
+
     _getJson(url) {
-        return new Promise((resolve) => {
-            const msg = Soup.Message.new('GET', url);
+        return new Promise(resolve => {
+            if (!this._session)
+                return resolve(null);
+
+            const msg = new Soup.Message({
+                method: 'GET',
+                uri: GLib.Uri.parse(url, GLib.UriFlags.NONE),
+            });
+
             msg.request_headers.append('User-Agent', 'weatherpanel');
 
             this._session.send_and_read_async(
@@ -285,10 +304,13 @@ export class GeolocationService {
                 null,
                 (session, res) => {
                     try {
+                        if (!this._session)
+                            return resolve(null);
+
                         const bytes = session.send_and_read_finish(res);
                         const text = new TextDecoder().decode(bytes.get_data());
                         resolve(JSON.parse(text));
-                    } catch (e) {
+                    } catch {
                         resolve(null);
                     }
                 }
@@ -296,26 +318,15 @@ export class GeolocationService {
         });
     }
 
-    _getJsonWithUA(url) {
-        return new Promise((resolve, reject) => {
-            const msg = Soup.Message.new('GET', url);
-            msg.request_headers.append('User-Agent', 'weatherpanel');
-
-            this._session.send_and_read_async(
-                msg,
-                GLib.PRIORITY_DEFAULT,
-                null,
-                (session, res) => {
-                    try {
-                        const bytes = session.send_and_read_finish(res);
-                        const text = new TextDecoder().decode(bytes.get_data());
-                        resolve(JSON.parse(text));
-                    } catch (e) {
-                        reject(e);
-                    }
-                }
-            );
-        });
+    _buildDisplayName(r) {
+        return (
+            r.name ||
+            r.city ||
+            r.town ||
+            r.village ||
+            r.locality ||
+            'Unknown'
+        );
     }
 }
 

@@ -3,13 +3,13 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/GNOME-45–50-blue?logo=gnome&logoColor=white" />
-  <img src="https://img.shields.io/badge/Provider-OpenMeteo-brightgreen?logo=cloudflare" />
+  <img src="https://img.shields.io/badge/Providers-OpenMeteo_+_Yr.no-brightgreen" />
   <img src="https://img.shields.io/github/license/attentivecoder/weatherpanel" />
   <img src="https://img.shields.io/badge/version-1.0-blue" />
 </p>
 
 WeatherPanel is a modern GNOME Shell weather extension that focuses on clarity, responsiveness, and a clean GNOME‑native design.
-It provides accurate weather data from **Open‑Meteo**, a redesigned panel menu, and a polished user experience that integrates seamlessly with GNOME.
+It supports **multiple weather providers**, **multiple location search providers**, and **multiple IP geolocation providers**, with automatic fallback behavior.
 
 ---
 
@@ -21,11 +21,26 @@ It provides accurate weather data from **Open‑Meteo**, a redesigned panel menu
 - Automatically updates when weather changes
 - Gracefully handles offline mode
 
-### 📍 Location‑aware
-- Supports multiple saved cities
-- One‑click “Use my location” button
+### 🧠 Multiple weather providers
+- Choose between **Open‑Meteo** and **Yr.no**
+- Automatic fallback if the selected provider fails
+- Provider name shown directly in the menu
+- One‑click link to provider website
+
+### 📍 Flexible location search
+- Choose your **location search provider**:
+  - OpenStreetMap
+  - Open‑Meteo
+- Fast, debounced search with clean results
+- Handles offline mode gracefully
+
+### 🌐 IP‑based location detection
+- Choose your **IP geolocation provider**:
+  - ipapi.co
+  - ipinfo.io
+- Used for “Use my location”
 - Smart duplicate detection
-- Automatic refresh when switching cities
+- Graceful error handling
 
 ### 🌡️ Detailed current conditions
 - Temperature (C / F / K)
@@ -61,6 +76,11 @@ It provides accurate weather data from **Open‑Meteo**, a redesigned panel menu
 
 ## ⚙️ Settings
 
+### Providers
+- **Weather Provider:** Open‑Meteo / Yr.no
+- **Location Search Provider:** OpenStreetMap / Open‑Meteo
+- **IP Geolocation Provider:** ipapi.co / ipinfo.io
+
 ### Units
 - Temperature: Celsius / Fahrenheit / Kelvin
 - Wind speed: km/h / mph / m/s / knots
@@ -72,6 +92,7 @@ It provides accurate weather data from **Open‑Meteo**, a redesigned panel menu
 ### Location
 - Manage saved cities
 - Auto‑detect location
+- Smart duplicate detection
 
 ---
 
@@ -136,6 +157,7 @@ gsettings get org.gnome.shell.extensions.weatherpanel unit
 ```
 
 ## 🏷️ Packaging for release
+
 Create a ZIP bundle:
 
 ```bash
@@ -158,7 +180,6 @@ Create a ZIP bundle:
             -x "schemas/gschemas.compiled" \
             -x ".git/*" \
             -x ".gitignore" \
-            -x "test-soup.js" \
             -x "node_modules/*" \
             -x "package.json" \
             -x "package-lock.json"
@@ -166,10 +187,13 @@ Create a ZIP bundle:
 
 ## ❤️ Credits
 
-- Weather data provided by **Open‑Meteo**
+- Weather data provided by **Open‑Meteo** and **Yr.no**
+- Location search powered by **OpenStreetMap** and **Open‑Meteo**
+- IP geolocation via **ipapi.co** and **ipinfo.io**
 - UI and logic inspired by GNOME Weather and community extensions
 - Originally based on the **OpenWeather** extension by *skrewball*:
   https://gitlab.com/skrewball/openweather
-  Now heavily rewritten, modernized, and expanded into a new project
+- Special thanks to **JustPerfection** for GNOME extension review feedback and guidance: 
+  https://extensions.gnome.org/accounts/profile/JustPerfection
 - Designed & developed by **@attentivecoder**
 

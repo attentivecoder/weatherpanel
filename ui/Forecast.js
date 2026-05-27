@@ -19,7 +19,6 @@ export class Forecast {
 
         this._settings = null;
         this._data = null;
-        this._signals = [];
 
         this._buildUI();
     }
@@ -49,25 +48,22 @@ export class Forecast {
         if (!this._settings)
             return;
 
-        // Disconnect old signals
-        for (const [obj, id] of this._signals) {
-            try { obj.disconnect(id); } catch (_) {}
-        }
-        this._signals = [];
+        // Disconnect previous connections
+        this._settings.disconnectObject(this);
 
-        const settings = this._settings;
-
-        const id = settings.connect('changed', (_, key) => {
-            if (
-                key === 'unit' ||
-                key === 'wind-speed-unit' ||
-                key === 'pressure-unit'
-            ) {
-                this._render();
-            }
-        });
-
-        this._signals.push([settings, id]);
+        this._settings.connectObject(
+            'changed',
+            (_, key) => {
+                if (
+                    key === 'unit' ||
+                    key === 'wind-speed-unit' ||
+                    key === 'pressure-unit'
+                ) {
+                    this._render();
+                }
+            },
+            this
+        );
     }
 
     /* ---------------- UI ---------------- */
@@ -83,7 +79,6 @@ export class Forecast {
 
         this._scroll.vscrollbar_policy = St.PolicyType.AUTOMATIC;
         this._scroll.hscrollbar_policy = St.PolicyType.NEVER;
-        this._scroll.enable_mouse_scrolling = true;
 
         this._container = new St.BoxLayout({
             vertical: true,
@@ -221,12 +216,11 @@ export class Forecast {
     }
 
     destroy() {
-        for (const [obj, id] of this._signals) {
-            try { obj.disconnect(id); } catch (_) {}
-        }
-        this._signals = [];
+        this._settings?.disconnectObject(this);
 
+        this._scroll = null;
         this._container = null;
+
         this.actor.destroy();
     }
 }

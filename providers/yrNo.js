@@ -1,4 +1,3 @@
-// providers/yrNo.js
 import GObject from 'gi://GObject';
 import BaseProvider from './baseProvider.js';
 
@@ -25,7 +24,6 @@ class YrNoProvider extends BaseProvider {
         return `https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=${lat}&lon=${lon}`;
     }
 
-    // MET Norway requires a User-Agent header
     _getHeaders() {
         return {
             'User-Agent': 'weatherpanel'

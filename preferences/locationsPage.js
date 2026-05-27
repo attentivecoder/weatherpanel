@@ -10,10 +10,9 @@ const GEO_OSM = 0;
 const GEO_OPEN_METEO = 1;
 
 export default class LocationsPage {
-    constructor(parent, settings, extension) {
+    constructor(parent, settings) {
         this._window = parent;
         this._settings = settings;
-        this._extension = extension;
 
         this._geolocation = new GeolocationService(settings);
 
@@ -418,6 +417,7 @@ export default class LocationsPage {
     }
 
     destroy() {
+        this._geolocation?.destroy?.();
         this.page.destroy();
     }
 }

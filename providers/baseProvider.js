@@ -1,7 +1,6 @@
-// baseProvider.js
 import GObject from 'gi://GObject';
 import GLib from 'gi://GLib';
-import Soup from 'gi://Soup?version=3.0';
+import Soup from 'gi://Soup';
 
 export default GObject.registerClass({
     Signals: {
@@ -31,8 +30,9 @@ export default GObject.registerClass({
     }
 
     stop() {
-        // Providers may override if needed
+        this._session?.abort();
     }
+
 
     async refresh(isCurrent) {
         try {
@@ -116,7 +116,10 @@ export default GObject.registerClass({
     async _getJson(url, headers = null) {
         try {
             return await new Promise((resolve, reject) => {
-                const msg = Soup.Message.new('GET', url);
+                const msg = new Soup.Message({
+                    method: 'GET',
+                    uri: GLib.Uri.parse(url, GLib.UriFlags.NONE),
+                });
 
                 if (headers) {
                     for (const [key, value] of Object.entries(headers))
@@ -152,7 +155,7 @@ export default GObject.registerClass({
     }
 
     /* ---------------------------------------------------------
-     * ABSTRACT METHODS (must be implemented by providers)
+     * ABSTRACT METHODS
      * --------------------------------------------------------- */
 
     _buildUrl(lat, lon) {

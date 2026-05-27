@@ -31,18 +31,14 @@ export default class Controller {
         this._provider = null;
 
         this._panelButton = null;
-        this._signals = [];
 
         this._currentTimerId = 0;
         this._forecastTimerId = 0;
 
         this._refreshInProgress = false;
-        this._destroyed = false;
     }
 
     enable() {
-        this._destroyed = false;
-
         this._initProviders();
         this._initPanelButton();
         this._bindSettingsSignals();
@@ -54,10 +50,9 @@ export default class Controller {
     }
 
     disable() {
-        this._destroyed = true;
-
         this._stopTimers();
-        this._disconnectSignals();
+        
+        this._settings.disconnectObject(this);
 
         if (this._panelButton) {
             this._panelButton.stop?.();
@@ -111,7 +106,7 @@ export default class Controller {
 
         this._initProviders();
         this._setActiveProvider(this._providerPrimary);
-        
+
         this._panelButton?.setProvider?.(this._providerPrimary);
 
         this._startTimers();
@@ -172,57 +167,56 @@ export default class Controller {
     /* ---------------- SETTINGS SIGNALS ---------------- */
 
     _bindSettingsSignals() {
-        const id = this._settings.connect('changed', (_, key) => {
+        this._settings.connectObject(
+            'changed',
+            (_, key) => {
 
-            if (this._destroyed)
-                return;
+                if (
+                    key === 'unit' ||
+                    key === 'wind-speed-unit' ||
+                    key === 'pressure-unit'
+                ) {
+                    this._panelButton?.update?.();
+                    return;
+                }
 
-            if (
-                key === 'unit' ||
-                key === 'wind-speed-unit' ||
-                key === 'pressure-unit'
-            ) {
-                this._panelButton?.update?.();
-                return;
-            }
+                if (key === 'disable-forecast') {
+                    this._panelButton?.refresh?.();
+                    this._startTimers();
+                    return;
+                }
 
-            if (key === 'disable-forecast') {
-                this._panelButton?.refresh?.();
-                this._startTimers();
-                return;
-            }
+                if (
+                    key === 'refresh-interval-current' ||
+                    key === 'refresh-interval-forecast'
+                ) {
+                    this._startTimers();
+                    return;
+                }
 
-            if (
-                key === 'refresh-interval-current' ||
-                key === 'refresh-interval-forecast'
-            ) {
-                this._startTimers();
-                return;
-            }
+                if (
+                    key === 'position-in-panel' ||
+                    key === 'position-index'
+                ) {
+                    this._reapplyPanelPosition();
+                    return;
+                }
 
-            if (
-                key === 'position-in-panel' ||
-                key === 'position-index'
-            ) {
-                this._reapplyPanelPosition();
-                return;
-            }
+                if (key === 'provider') {
+                    this._onProviderChanged();
+                    return;
+                }
 
-            if (key === 'provider') {
-                this._onProviderChanged();
-                return;
-            }
-
-            if (
-                key === 'city' ||
-                key === 'actual-city'
-            ) {
-                this._refreshWithFallback(true).catch(logError);
-                this._refreshWithFallback(false).catch(logError);
-            }
-        });
-
-        this._signals.push([this._settings, id]);
+                if (
+                    key === 'city' ||
+                    key === 'actual-city'
+                ) {
+                    this._refreshWithFallback(true).catch(logError);
+                    this._refreshWithFallback(false).catch(logError);
+                }
+            },
+            this
+        );
     }
 
     /* ---------------- TIMERS ---------------- */
@@ -272,7 +266,7 @@ export default class Controller {
         }
     }
 
-    /* ---------------- REFRESH / FAILOVER ---------------- */
+    /* ---------------- REFRESH / FALLBACK ---------------- */
 
     async _refreshWithFallback(isCurrent) {
         if (this._refreshInProgress)
@@ -284,9 +278,6 @@ export default class Controller {
             const okPrimary =
                 await this._providerPrimary.refresh(isCurrent);
 
-            if (this._destroyed)
-                return;
-
             if (okPrimary) {
                 this._setActiveProvider(this._providerPrimary);
                 return;
@@ -295,9 +286,6 @@ export default class Controller {
             const okFallback =
                 await this._providerFallback.refresh(isCurrent);
 
-            if (this._destroyed)
-                return;
-
             if (okFallback)
                 this._setActiveProvider(this._providerFallback);
 
@@ -305,16 +293,4 @@ export default class Controller {
             this._refreshInProgress = false;
         }
     }
-
-    /* ---------------- CLEANUP ---------------- */
-
-    _disconnectSignals() {
-        for (const [obj, id] of this._signals) {
-            try {
-                obj.disconnect(id);
-            } catch (_) {}
-        }
-        this._signals = [];
-    }
 }
-

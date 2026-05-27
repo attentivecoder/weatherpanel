@@ -1,4 +1,3 @@
-// providers/openMeteo.js
 import GObject from 'gi://GObject';
 import BaseProvider from './baseProvider.js';
 
@@ -22,13 +21,12 @@ class OpenMeteoProvider extends BaseProvider {
      * --------------------------------------------------------- */
 
     _buildUrl(lat, lon) {
-        return (
-            `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
-            `&current_weather=true` +
-            `&hourly=temperature_2m,weathercode,pressure_msl,windspeed_10m,winddirection_10m,windgusts_10m` +
-            `&daily=weathercode,temperature_2m_max,temperature_2m_min,sunrise,sunset` +
-            `&timezone=auto`
-        );
+        return `https://api.open-meteo.com/v1/forecast?` +
+       `latitude=${lat}&longitude=${lon}` +
+       `&current_weather=true` +
+       `&hourly=temperature_2m,weathercode,pressure_msl,windspeed_10m,winddirection_10m,windgusts_10m` +
+       `&daily=weathercode,temperature_2m_max,temperature_2m_min,sunrise,sunset` +
+       `&timezone=auto`;
     }
 
     /* ---------------------------------------------------------
