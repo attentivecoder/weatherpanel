@@ -193,7 +193,8 @@ export default class PanelButton {
        ========================================================= */
 
     _buildMenu() {
-        if (this.menu) {
+        if (this.menu) {            
+            this._disconnectMenuSignals();
             Main.panel.menuManager.removeMenu(this.menu);
             this.menu.destroy();
             this.menu = null;
@@ -214,12 +215,7 @@ export default class PanelButton {
         Main.uiGroup.add_child(this.menu.actor);
         Main.panel.menuManager.addMenu(this.menu);
         
-        const menuId = this.menu.connect('open-state-changed', (menu, isOpen) => {
-            if (isOpen)
-                this.actor.add_style_pseudo_class('active');
-            else
-                this.actor.remove_style_pseudo_class('active');
-        });
+        this._connectMenuSignals();
 
         this._root = new St.BoxLayout({
             vertical: true,
@@ -262,6 +258,29 @@ export default class PanelButton {
 
         this._renderCityHeader();
     }
+    
+    _connectMenuSignals() {
+        this._menuOpenSignalId = this.menu.connect(
+            'open-state-changed',
+            (menu, isOpen) => {
+                if (isOpen)
+                    this.actor.add_style_pseudo_class('active');
+                else
+                    this.actor.remove_style_pseudo_class('active');
+            }
+        );
+    }
+    
+    _disconnectMenuSignals() {
+        if (this.menu && this._menuOpenSignalId) {
+            try {
+                this.menu.disconnect(this._menuOpenSignalId);
+            } catch (_) {}
+        }
+
+        this._menuOpenSignalId = null;
+    }
+
 
     /* =========================================================
        BUTTONS
@@ -838,29 +857,30 @@ export default class PanelButton {
     }
 
     stop() {
+        if (!this.actor)
+            return;
+        
         this._settings.disconnectObject(this);
-        this._disconnectProviderSignals();        
+        this._disconnectProviderSignals();   
+        this._disconnectMenuSignals();
         
         this._geolocation?.destroy();
 
         if (this._timestampTimer) {
-            GLib.source_remove(
-                this._timestampTimer
-            );
+            GLib.source_remove(this._timestampTimer);
 
             this._timestampTimer = null;
         }
 
         if (this.menu) {
-            Main.panel.menuManager.removeMenu(
-                this.menu
-            );
+            Main.panel.menuManager.removeMenu(this.menu);
 
             this.menu.destroy();
             this.menu = null;
         }
-        
-         this.actor.destroy();
+         
+        this.actor.destroy();
+        this.actor = null;
     }
 
     destroy() {
