@@ -417,7 +417,7 @@ export default class LocationsPage {
     }
 
     destroy() {
-        this._geolocation?.destroy?.();
+        this._geolocation?.destroy();
         this.page.destroy();
     }
 }

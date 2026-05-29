@@ -335,6 +335,14 @@
     font-size: 11px;
 }
 
+.weatherpanel-offline-label {
+    font-size: 11px;
+
+    color: @theme_unfocused_fg_color;
+
+    padding-top: 6px;
+}
+
 
 /* =========================================================
    LOADING

@@ -1,7 +1,6 @@
 import { Extension } from 'resource:///org/gnome/shell/extensions/extension.js';
 import { GeolocationService } from './services/geolocation.js';
 import Controller from './controller.js';
-import Gio from 'gi://Gio';
 
 export default class WeatherPanel extends Extension {
 
@@ -18,7 +17,9 @@ export default class WeatherPanel extends Extension {
         this._controller?.disable();
         this._controller = null;
 
+        this.geolocation?.destroy();
         this.geolocation = null;
+        
         this.settings = null;
     }
 

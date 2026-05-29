@@ -2,7 +2,6 @@ import GLib from 'gi://GLib';
 
 /**
  * Pure formatting utilities for weather data.
- * No side effects. No GNOME UI. No network logic.
  */
 
 /* ---------------------------
@@ -139,10 +138,10 @@ export function formatTime(timestamp, locale = null) {
     // GNOME-safe locale fallback
     let loc = locale || GLib.get_language_names()[0] || 'en';
 
-    // ❗ Strip encoding suffixes like ".UTF-8"
+    // Strip encoding suffixes like ".UTF-8"
     loc = loc.replace(/\.UTF-8$/i, '');
 
-    // ❗ Replace underscores with hyphens (required by ECMA-402)
+    // Replace underscores with hyphens (required by ECMA-402)
     loc = loc.replace('_', '-');
 
     try {

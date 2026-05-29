@@ -205,7 +205,6 @@ export default class PanelButton {
             St.Side.TOP
         );
 
-        /* IMPORTANT FIX */
         this.menu.actor.add_style_class_name(
             'weatherpanel-menu'
         );
@@ -214,6 +213,13 @@ export default class PanelButton {
 
         Main.uiGroup.add_child(this.menu.actor);
         Main.panel.menuManager.addMenu(this.menu);
+        
+        const menuId = this.menu.connect('open-state-changed', (menu, isOpen) => {
+            if (isOpen)
+                this.actor.add_style_pseudo_class('active');
+            else
+                this.actor.remove_style_pseudo_class('active');
+        });
 
         this._root = new St.BoxLayout({
             vertical: true,
@@ -225,7 +231,6 @@ export default class PanelButton {
             can_focus: false,
         });
 
-        /* IMPORTANT FIX */
         rootItem.style_class = 'weatherpanel-root-item';
 
         rootItem.add_child(this._root);
@@ -492,7 +497,7 @@ export default class PanelButton {
        UI
        ========================================================= */
 
-    _updateUI(data) {
+    _updateUI(data) {           
         if (!data || !data.current)
             return;
 
@@ -587,6 +592,28 @@ export default class PanelButton {
         root.add_child(textBox);
 
         this._currentItem.add_child(root);
+    }
+    
+    _renderOfflineState() {
+        if (!this._currentItem)
+            return;
+
+        this._currentItem.destroy_all_children();
+
+        if (this._lastData?.current) {
+            this._renderCurrent(this._lastData.current);
+
+            this._currentItem.add_child(new St.Label({
+                text: _('Showing cached weather data'),
+                style_class: 'weatherpanel-offline-label',
+            }));
+        } else {
+            this._currentItem.add_child(new St.Label({
+                text: _('Offline'),
+            }));
+        }
+
+        this._updateStatusLabel();
     }
 
     /* =========================================================
