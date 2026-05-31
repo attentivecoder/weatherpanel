@@ -75,10 +75,12 @@ export default class Controller {
 
         this._providerPrimary?.stop?.();
         this._providerFallback?.stop?.();
+        this._locationManager?.stop?.();
 
         this._providerPrimary = null;
         this._providerFallback = null;
         this._activeProvider = null;
+        this._locationManager = null;
     }
 
     /* ---------------- PROVIDERS ---------------- */
