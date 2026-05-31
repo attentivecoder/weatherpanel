@@ -42,7 +42,8 @@ export default class Controller {
             forecast: 0,
             status: 0,
         };
-
+        
+        this._refreshInProgress = false;
         this._settingsSignalId = null;
         
         this._refreshSeq = 0;
@@ -108,7 +109,14 @@ export default class Controller {
             return;
 
         this._activeProvider = provider;
-        this._panelButton?.setProviderName(provider.getName());
+
+        if (this._panelButton) {
+            this._panelButton.setProvider(provider);
+            this._panelButton.setProviderName(provider.getName());
+            
+             this.refresh(true);
+             this.refresh(false);
+        }
     }
 
     /* ---------------- PANEL UI ---------------- */
@@ -302,7 +310,7 @@ export default class Controller {
             case 'unit':
             case 'wind-speed-unit':
             case 'pressure-unit':
-                this._panelButton?.update?.();
+                this._panelButton?.refreshUI();
                 break;
 
             case 'city':

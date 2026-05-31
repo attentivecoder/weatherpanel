@@ -602,6 +602,19 @@ export default class PanelButton {
 
         this.updateStatusLabel();
     }
+    
+    refreshUI() {
+        if (!this._lastData)
+            return;
+
+        this._updateUI(this._lastData);
+    }
+    
+    setProviderName(name) {
+        if (this._providerRow)
+            this._providerRow.label = `Weather API: ${name}`;
+    }
+
 
     _renderCurrent(current) {
         if (!current || !this._currentItem)
