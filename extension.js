@@ -22,18 +22,5 @@ export default class WeatherPanel extends Extension {
         
         this.settings = null;
     }
-
-    async setCurrentLocation() {
-        const loc = await this.geolocation.getCurrentLocation();
-        const city = await this.geolocation.reverseGeocode(loc);
-
-        if (!city || !city.name)
-            throw new Error("Failed to get location");
-
-        this.settings.set_string('city', JSON.stringify([city]));
-        this.settings.set_int('actual-city', 0);
-
-        return city;
-    }
 }
 

@@ -25,8 +25,19 @@ export default class PanelButton {
 
         this._lastData = null;
         this._timestampTimer = null;
+         
+        this._isRefreshing = false;        
 
         this._geolocation = new GeolocationService(this._settings);
+        
+        this._networkMonitor = Gio.NetworkMonitor.get_default();
+        this._networkSignalId = 0;
+        
+        this._providerSignalOwner = {
+            weather: 0,
+            forecast: 0,
+            error: 0,
+        };
 
         this.actor = new St.Button({
             style_class: 'panel-button weatherpanel-button',
@@ -44,20 +55,17 @@ export default class PanelButton {
 
             if (button === Clutter.BUTTON_PRIMARY) {
                 this.menu.toggle();
-                return Clutter.EVENT_STOP;
             }
 
             if (button === Clutter.BUTTON_SECONDARY) {
-                this._openPrefs();
-                return Clutter.EVENT_STOP;
+                this.onPrefsRequested?.();
             }
 
             if (button === Clutter.BUTTON_MIDDLE) {
-                this._openWebsite();
-                return Clutter.EVENT_STOP;
+                this.onWebsiteRequested?.();
             }
 
-            return Clutter.EVENT_PROPAGATE;
+            return Clutter.EVENT_STOP;
         });
     }
 
@@ -99,7 +107,7 @@ export default class PanelButton {
                 this._lastData = data;
 
                 this._updateUI(data);
-                this._updateStatusLabel();
+                this.updateStatusLabel();
             },
             this
         );
@@ -113,7 +121,7 @@ export default class PanelButton {
                 this._lastData.forecast = forecast;
 
                 this._renderForecast(forecast);
-                this._updateStatusLabel();
+                this.updateStatusLabel();
             },
             this
         );
@@ -193,7 +201,7 @@ export default class PanelButton {
        ========================================================= */
 
     _buildMenu() {
-        if (this.menu) {            
+        if (this.menu) {
             this._disconnectMenuSignals();
             Main.panel.menuManager.removeMenu(this.menu);
             this.menu.destroy();
@@ -259,7 +267,7 @@ export default class PanelButton {
         this._renderCityHeader();
     }
     
-    _connectMenuSignals() {
+     _connectMenuSignals() {
         this._menuOpenSignalId = this.menu.connect(
             'open-state-changed',
             (menu, isOpen) => {
@@ -280,7 +288,6 @@ export default class PanelButton {
 
         this._menuOpenSignalId = null;
     }
-
 
     /* =========================================================
        BUTTONS
@@ -509,14 +516,67 @@ export default class PanelButton {
         );
 
         this._connectProviderSignals();
+        this._connectNetworkSignals();        
         this._startTimestampTimer();
+    }
+    
+    _connectNetworkSignals() {
+        if (this._networkSignalId)
+            return;
+
+        this._networkSignalId = this._networkMonitor.connect(
+            'network-changed',
+            async (_monitor, available) => {
+                try {
+                    this.updateStatusLabel();
+
+                    if (!this._hasCity())
+                        return;
+
+                    if (!available) {
+                        this._label.text = _('Offline');
+                        this._icon.icon_name = 'network-offline-symbolic';
+                        this._renderOfflineState();
+                        return;
+                    }
+
+                    if (this._isRefreshing)
+                        return;
+
+                    this._isRefreshing = true;
+
+                    try {
+                        await this._provider?.refresh?.(true);
+                    } catch (e) {
+                        logError(e);
+                    } finally {
+                        this._isRefreshing = false;
+                    }
+
+                } catch (e) {
+                    logError(e);
+                }
+            }
+        );
+
+    }
+    
+    _disconnectNetworkSignals() {
+        if (this._networkMonitor && this._networkSignalId) {
+            try {
+                this._networkMonitor.disconnect(this._networkSignalId);
+            } catch (e) {
+                logError(e);
+            }
+            this._networkSignalId = 0;
+        }
     }
 
     /* =========================================================
        UI
        ========================================================= */
 
-    _updateUI(data) {           
+    _updateUI(data) {
         if (!data || !data.current)
             return;
 
@@ -540,7 +600,7 @@ export default class PanelButton {
         this._renderCurrent(data.current);
         this._renderForecast(data.forecast);
 
-        this._updateStatusLabel();
+        this.updateStatusLabel();
     }
 
     _renderCurrent(current) {
@@ -613,7 +673,7 @@ export default class PanelButton {
         this._currentItem.add_child(root);
     }
     
-    _renderOfflineState() {
+     _renderOfflineState() {
         if (!this._currentItem)
             return;
 
@@ -632,7 +692,7 @@ export default class PanelButton {
             }));
         }
 
-        this._updateStatusLabel();
+        this.updateStatusLabel();
     }
 
     /* =========================================================
@@ -699,14 +759,33 @@ export default class PanelButton {
 
         this._cityItem.destroy_all_children();
 
+        if (!city) {
+            this._cityItem.add_child(
+                new St.Label({
+                    text: _('No location selected'),
+                    style_class: 'weatherpanel-city-header',
+                })
+            );
+            return;
+        }
+
+        const parts = [];
+
+        if (city.name)
+            parts.push(city.name);
+
+        if (city.region && city.region !== city.name)
+            parts.push(city.region);
+
+        if (city.country)
+            parts.push(city.country);
+
+        let text = parts.join(', ');
+
         this._cityItem.add_child(
             new St.Label({
-                text: city
-                    ? city.name
-                    : _('No location selected'),
-
-                style_class:
-                    'weatherpanel-city-header',
+                text,
+                style_class: 'weatherpanel-city-header',
             })
         );
     }
@@ -724,14 +803,14 @@ export default class PanelButton {
                 GLib.PRIORITY_DEFAULT,
                 60,
                 () => {
-                    this._updateStatusLabel();
+                    this.updateStatusLabel();
 
                     return GLib.SOURCE_CONTINUE;
                 }
             );
     }
 
-    _updateStatusLabel() {
+    updateStatusLabel() {
         if (!this._statusLabel)
             return;
 
@@ -859,9 +938,10 @@ export default class PanelButton {
     stop() {
         if (!this.actor)
             return;
-        
+            
         this._settings.disconnectObject(this);
-        this._disconnectProviderSignals();   
+        this._disconnectProviderSignals();
+        this._disconnectNetworkSignals();
         this._disconnectMenuSignals();
         
         this._geolocation?.destroy();
@@ -878,9 +958,9 @@ export default class PanelButton {
             this.menu.destroy();
             this.menu = null;
         }
-         
-        this.actor.destroy();
-        this.actor = null;
+        
+         this.actor.destroy();
+         this.actor = null;
     }
 
     destroy() {
