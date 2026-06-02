@@ -322,7 +322,7 @@ export default class PanelButton {
 
                     const city = await this._geolocation.reverseGeocode(loc);
 
-                    if (!city || !city.name || city.name === 'Unknown location') {
+                    if (!city || !city.label) {
                         Main.notify(_('Could not determine your location'));
                         return;
                     }
@@ -754,14 +754,29 @@ export default class PanelButton {
 
         this._cityItem.destroy_all_children();
 
+        let text;
+
+        if (!city) {
+            text = _('No location selected');
+        } else {
+            const parts = [];
+
+            if (city.label)
+                parts.push(city.label);
+
+            if (city.region || city.state)
+                parts.push(city.region ?? city.state);
+
+            if (city.country)
+                parts.push(city.country);
+
+            text = parts.join(' , ');
+        }
+
         this._cityItem.add_child(
             new St.Label({
-                text: city
-                    ? city.name
-                    : _('No location selected'),
-
-                style_class:
-                    'weatherpanel-city-header',
+                text,
+                style_class: 'weatherpanel-city-header',
             })
         );
     }

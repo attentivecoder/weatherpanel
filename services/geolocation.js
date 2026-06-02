@@ -3,15 +3,7 @@ import GLib from 'gi://GLib';
 import Soup from 'gi://Soup';
 
 /**
- * GeolocationService (dynamic provider)
- *
- * - IP geolocation provider (user‑selectable):
- *      • ipapi.co
- *      • ipinfo.io
- *
- * - Geocoding provider (user‑selectable):
- *      • OpenStreetMap (Nominatim)
- *      • Open‑Meteo geocoding
+ * GeolocationService (schema-driven)
  */
 
 const IP_API = 0;
@@ -26,12 +18,8 @@ export class GeolocationService {
         this._session = new Soup.Session();
     }
 
-    /* ---------------------------------------------------------
-     * LIFECYCLE
-     * --------------------------------------------------------- */
-
     abort() {
-            this._session?.abort();
+        this._session?.abort();
     }
 
     destroy() {
@@ -40,7 +28,7 @@ export class GeolocationService {
     }
 
     /* ---------------------------------------------------------
-     * 1. IP GEOLOCATION
+     * IP GEOLOCATION
      * --------------------------------------------------------- */
 
     async getCurrentLocation() {
@@ -55,26 +43,34 @@ export class GeolocationService {
         return await this._tryIpInfo() ?? await this._tryIpApi();
     }
 
+    _normalizeIpLocation({ city, region, country, lat, lon }) {
+        return {
+            label: city ?? null,
+            region: region ?? null,
+            postcode: null,
+            country: country ?? null,
+            lat: Number(lat),
+            lon: Number(lon),
+        };
+    }
+
     async _tryIpApi() {
         try {
             const json = await this._getJson('https://ipapi.co/json/');
             if (!this._session) return null;
 
             if (json?.city && json?.latitude && json?.longitude) {
-                return {
+                return this._normalizeIpLocation({
                     city: json.city,
-                    region: json.region ?? null,
-                    country: json.country_name ?? json.country ?? null,
-                    lat: Number(json.latitude),
-                    lon: Number(json.longitude),
-                    accuracy: 20000,
-                    raw: json,
-                };
+                    region: json.region,
+                    country: json.country_name ?? json.country,
+                    lat: json.latitude,
+                    lon: json.longitude,
+                });
             }
         } catch (e) {
             log('ipapi.co failed: ' + e.message);
         }
-
         return null;
     }
 
@@ -86,52 +82,46 @@ export class GeolocationService {
             if (json?.loc) {
                 const [lat, lon] = json.loc.split(',').map(Number);
 
-                return {
-                    city: json.city ?? null,
-                    region: json.region ?? null,
-                    country: json.country ?? null,
+                return this._normalizeIpLocation({
+                    city: json.city,
+                    region: json.region,
+                    country: json.country,
                     lat,
                     lon,
-                    accuracy: 50000,
-                    raw: json,
-                };
+                });
             }
         } catch (e) {
             log('ipinfo.io failed: ' + e.message);
         }
-
         return null;
     }
 
     /* ---------------------------------------------------------
-     * 2. REVERSE GEOCODING
+     * REVERSE GEOCODING
      * --------------------------------------------------------- */
 
     async reverseGeocode(loc) {
-        if (!this._session)
-            return null;
-
-        if (!loc?.lat || !loc?.lon)
+        if (!this._session || !loc?.lat || !loc?.lon)
             return null;
 
         const provider = this._settings.get_enum('geocoding-provider');
 
         if (provider === GEO_OPEN_METEO) {
-            const result = await this._reverseGeocodeOpenMeteo(loc);
-            if (result?.name !== 'Unknown')
-                return result;
+            const r = await this._reverseOpenMeteo(loc);
+            if (r?.label)
+                return r;
 
-            return await this._reverseGeocodeNominatim(loc);
+            return await this._reverseNominatim(loc);
         }
 
-        const result = await this._reverseGeocodeNominatim(loc);
-        if (result?.name !== 'Unknown')
-            return result;
+        const r = await this._reverseNominatim(loc);
+        if (r?.label)
+            return r;
 
-        return await this._reverseGeocodeOpenMeteo(loc);
+        return await this._reverseOpenMeteo(loc);
     }
 
-    async _reverseGeocodeNominatim(loc) {
+    async _reverseNominatim(loc) {
         const url =
             `https://nominatim.openstreetmap.org/reverse?format=json&lat=${loc.lat}&lon=${loc.lon}&addressdetails=1`;
 
@@ -140,37 +130,40 @@ export class GeolocationService {
             return null;
 
         if (json?.address) {
-            const addr = json.address;
+            const a = json.address;
 
-            const name =
-                addr.city ||
-                addr.town ||
-                addr.village ||
-                addr.hamlet ||
-                addr.locality ||
-                addr.municipality ||
+            const label =
+                a.city ||
+                a.town ||
+                a.village ||
+                a.hamlet ||
+                a.locality ||
+                a.municipality ||
                 null;
 
             return {
-                name: name ?? 'Unknown',
-                country: addr.country ?? loc.country ?? null,
+                label,
+                region: a.state ?? a.region ?? a.county ?? null,
+                postcode: a.postcode ?? null,
+                country: a.country ?? loc.country ?? null,
                 lat: loc.lat,
                 lon: loc.lon,
             };
         }
 
         return {
-            name: loc.city ?? 'Unknown',
+            label: null,
+            region: null,
+            postcode: null,
             country: loc.country ?? null,
             lat: loc.lat,
             lon: loc.lon,
         };
     }
 
-    async _reverseGeocodeOpenMeteo(loc) {
+    async _reverseOpenMeteo(loc) {
         const url =
-            `https://geocoding-api.open-meteo.com/v1/reverse?` +
-            `latitude=${loc.lat}&longitude=${loc.lon}&language=en&format=json`;
+            `https://geocoding-api.open-meteo.com/v1/reverse?latitude=${loc.lat}&longitude=${loc.lon}&language=en&format=json`;
 
         const json = await this._getJson(url);
         if (!this._session)
@@ -180,16 +173,19 @@ export class GeolocationService {
             const r = json.results[0];
 
             return {
-                name: this._buildDisplayName(r),
+                label: r.name ?? null,
+                region: r.admin1 ?? r.admin2 ?? null,
+                postcode: r.postcode ?? null,
                 country: r.country ?? null,
                 lat: loc.lat,
                 lon: loc.lon,
-                raw: r,
             };
         }
 
         return {
-            name: loc.city ?? 'Unknown',
+            label: null,
+            region: null,
+            postcode: null,
             country: loc.country ?? null,
             lat: loc.lat,
             lon: loc.lon,
@@ -197,60 +193,55 @@ export class GeolocationService {
     }
 
     /* ---------------------------------------------------------
-     * 3. FORWARD GEOCODING
+     * FORWARD GEOCODING
      * --------------------------------------------------------- */
 
     async searchCity(query) {
-        if (!this._session)
-            return [];
-
-        if (!query?.trim())
+        if (!this._session || !query?.trim())
             return [];
 
         const provider = this._settings.get_enum('geocoding-provider');
 
         if (provider === GEO_OPEN_METEO) {
-            const results = await this._searchOpenMeteo(query);
-            if (results.length > 0)
-                return results;
+            const r = await this._searchOpenMeteo(query);
+            if (r.length > 0)
+                return r;
 
             return await this._searchNominatim(query);
         }
 
-        const results = await this._searchNominatim(query);
-        if (results.length > 0)
-            return results;
+        const r = await this._searchNominatim(query);
+        if (r.length > 0)
+            return r;
 
         return await this._searchOpenMeteo(query);
     }
 
     async _searchNominatim(query) {
         const url =
-            `https://nominatim.openstreetmap.org/search?` +
-            `format=json&addressdetails=1&limit=10&q=${encodeURIComponent(query)}`;
+            `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=10&q=${encodeURIComponent(query)}`;
 
         const json = await this._getJson(url);
-        if (!this._session)
-            return [];
-
-        if (!Array.isArray(json))
+        if (!this._session || !Array.isArray(json))
             return [];
 
         return json.map(r => {
-            const addr = r.address ?? {};
+            const a = r.address ?? {};
 
-            const name =
-                addr.city ||
-                addr.town ||
-                addr.village ||
-                addr.hamlet ||
-                addr.locality ||
+            const label =
+                a.city ||
+                a.town ||
+                a.village ||
+                a.hamlet ||
+                a.locality ||
                 r.display_name ||
-                query;
+                null;
 
             return {
-                name,
-                country: addr.country ?? null,
+                label,
+                region: a.state ?? null,
+                postcode: a.postcode ?? null,
+                country: a.country ?? null,
                 lat: Number(r.lat),
                 lon: Number(r.lon),
             };
@@ -259,27 +250,24 @@ export class GeolocationService {
 
     async _searchOpenMeteo(query) {
         const url =
-            `https://geocoding-api.open-meteo.com/v1/search?` +
-            `name=${encodeURIComponent(query)}&count=10&language=en&format=json`;
+            `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=10&language=en&format=json`;
 
         const json = await this._getJson(url);
-        if (!this._session)
-            return [];
-
-        if (!json?.results)
+        if (!this._session || !json?.results)
             return [];
 
         return json.results.map(r => ({
-            name: this._buildDisplayName(r),
+            label: r.name ?? null,
+            region: r.admin1 ?? null,
+            postcode: r.postcode ?? null,
             country: r.country ?? null,
             lat: r.latitude,
             lon: r.longitude,
-            raw: r,
         }));
     }
 
     /* ---------------------------------------------------------
-     * HELPERS
+     * HTTP
      * --------------------------------------------------------- */
 
     _getJson(url) {
@@ -313,16 +301,4 @@ export class GeolocationService {
             );
         });
     }
-
-    _buildDisplayName(r) {
-        return (
-            r.name ||
-            r.city ||
-            r.town ||
-            r.village ||
-            r.locality ||
-            'Unknown'
-        );
-    }
 }
-

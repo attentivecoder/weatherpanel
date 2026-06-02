@@ -65,7 +65,11 @@ export default class LocationsPage {
             this._refreshLocations();
         });
     }
-    
+
+    /* ---------------------------------------------------------
+     * SETTINGS STORAGE
+     * --------------------------------------------------------- */
+     
     _getProviderLabel() {
         const provider = this._settings.get_enum('geocoding-provider');
 
@@ -103,6 +107,10 @@ export default class LocationsPage {
         return latDiff < 0.01 && lonDiff < 0.01;
     }
 
+    /* ---------------------------------------------------------
+     * CURRENT LOCATION
+     * --------------------------------------------------------- */
+
     async _useCurrentLocation() {
         try {
             const loc = await this._geolocation.getCurrentLocation();
@@ -111,9 +119,11 @@ export default class LocationsPage {
             if (!city)
                 throw new Error('No city returned');
 
-            let cities = this._getCities();
+            const cities = this._getCities();
 
-            const existingIndex = cities.findIndex(c => this._isSameLocation(c, city));
+            const existingIndex = cities.findIndex(c =>
+                this._isSameLocation(c, city)
+            );
 
             if (existingIndex !== -1) {
                 this._settings.set_int('actual-city', existingIndex);
@@ -128,6 +138,7 @@ export default class LocationsPage {
 
             cities.push(city);
             this._setCities(cities);
+
             this._settings.set_int('actual-city', cities.length - 1);
 
             this._window.add_toast(new Adw.Toast({
@@ -138,11 +149,16 @@ export default class LocationsPage {
 
         } catch (e) {
             logError(e);
+
             this._window.add_toast(new Adw.Toast({
                 title: _('Failed to get location'),
             }));
         }
     }
+
+    /* ---------------------------------------------------------
+     * UI REFRESH
+     * --------------------------------------------------------- */
 
     _refreshLocations() {
         for (const row of this._rows)
@@ -159,8 +175,8 @@ export default class LocationsPage {
             const isActive = i === this._actualCity;
 
             const row = new Adw.ActionRow({
-                title: city.name ?? 'Unknown',
-                subtitle: `${city.lat}, ${city.lon}`,
+                title: city.label ?? 'Unknown',
+                subtitle: this._formatSubtitle(city),
                 icon_name: isActive
                     ? 'checkbox-checked-symbolic'
                     : 'checkbox-symbolic',
@@ -173,7 +189,10 @@ export default class LocationsPage {
                 halign: Gtk.Align.CENTER,
             });
 
-            const editBtn = new Gtk.Button({ icon_name: 'document-edit-symbolic' });
+            const editBtn = new Gtk.Button({
+                icon_name: 'document-edit-symbolic'
+            });
+
             const delBtn = new Gtk.Button({
                 icon_name: 'edit-delete-symbolic',
                 css_classes: ['error'],
@@ -205,6 +224,25 @@ export default class LocationsPage {
         });
     }
 
+    /* ---------------------------------------------------------
+     * FORMATTING
+     * --------------------------------------------------------- */
+
+    _formatSubtitle(city) {
+        return [
+            city.region,
+            city.postcode,
+            city.country,
+            `${city.lat}, ${city.lon}`
+        ]
+        .filter(Boolean)
+        .join(' • ');
+    }
+
+    /* ---------------------------------------------------------
+     * ADD / EDIT / DELETE
+     * --------------------------------------------------------- */
+
     _openAddDialog() {
         this._openSearchDialog({
             title: _('Add Location'),
@@ -229,12 +267,7 @@ export default class LocationsPage {
             return;
         }
 
-        cities.push({
-            name: entry.name,
-            lat: entry.lat,
-            lon: entry.lon,
-        });
-
+        cities.push(entry);
         this._setCities(cities);
 
         this._window.add_toast(new Adw.Toast({
@@ -251,14 +284,9 @@ export default class LocationsPage {
 
         this._openSearchDialog({
             title: _('Edit Location'),
-            initialText: current.name,
+            initialText: current.label,
             onSelect: (entry) => {
-                cities[index] = {
-                    name: entry.name,
-                    lat: entry.lat,
-                    lon: entry.lon,
-                };
-
+                cities[index] = entry;
                 this._setCities(cities);
 
                 this._window.add_toast(new Adw.Toast({
@@ -281,6 +309,10 @@ export default class LocationsPage {
             title: _('Location removed'),
         }));
     }
+
+    /* ---------------------------------------------------------
+     * SEARCH DIALOG
+     * --------------------------------------------------------- */
 
     _openSearchDialog({ title, initialText = '', onSelect }) {
         const dialog = new Gtk.Dialog({
@@ -306,15 +338,14 @@ export default class LocationsPage {
             margin_start: 12,
             margin_end: 12,
         });
-        
+
         const providerLabel = new Gtk.Label({
             label: _("Search provider: ") + this._getProviderLabel(),
             xalign: 0,
             css_classes: ['dim-label'],
         });
-
+        
         vbox.append(providerLabel);
-
 
         const entry = new Gtk.Entry({
             placeholder_text: _('Search city…'),
@@ -379,7 +410,7 @@ export default class LocationsPage {
 
         if (!Gio.NetworkMonitor.get_default().get_network_available()) {
             list.append(new Adw.ActionRow({
-                title: _('Unable to search — no internet connection'),
+                title: _('No internet connection'),
             }));
             return;
         }
@@ -396,16 +427,19 @@ export default class LocationsPage {
 
             for (const r of results) {
                 const row = new Adw.ActionRow({
-                    title: r.name,
-                    subtitle: `${r.lat}, ${r.lon}`,
+                    title: r.label,
+                    subtitle: [
+                        r.region,
+                        r.postcode,
+                        r.country,
+                        `${r.lat}, ${r.lon}`
+                    ].filter(Boolean).join(' • '),
                     activatable: true,
                 });
 
                 row._resultData = r;
                 list.append(row);
             }
-
-            list.show();
 
         } catch (e) {
             log(`Search failed: ${e.message}`);
@@ -421,4 +455,3 @@ export default class LocationsPage {
         this.page.destroy();
     }
 }
-
