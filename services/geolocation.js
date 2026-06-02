@@ -122,8 +122,8 @@ export class GeolocationService {
     }
 
     async _reverseNominatim(loc) {
-        const url =
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${loc.lat}&lon=${loc.lon}&addressdetails=1`;
+        const lang = GLib.get_language_names()[0].split('_')[0];
+        const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${loc.lat}&lon=${loc.lon}&addressdetails=1&accept-language=${lang}`;
 
         const json = await this._getJson(url);
         if (!this._session)
@@ -162,8 +162,8 @@ export class GeolocationService {
     }
 
     async _reverseOpenMeteo(loc) {
-        const url =
-            `https://geocoding-api.open-meteo.com/v1/reverse?latitude=${loc.lat}&longitude=${loc.lon}&language=en&format=json`;
+        const lang = GLib.get_language_names()[0].split('_')[0];
+        const url =  `https://geocoding-api.open-meteo.com/v1/reverse?latitude=${loc.lat}&longitude=${loc.lon}&language=${lang}&format=json`;
 
         const json = await this._getJson(url);
         if (!this._session)
@@ -218,8 +218,8 @@ export class GeolocationService {
     }
 
     async _searchNominatim(query) {
-        const url =
-            `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=10&q=${encodeURIComponent(query)}`;
+        const lang = GLib.get_language_names()[0].split('_')[0];
+        const url = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=10&q=${encodeURIComponent(query)}&accept-language=${lang}`;
 
         const json = await this._getJson(url);
         if (!this._session || !Array.isArray(json))
@@ -249,8 +249,8 @@ export class GeolocationService {
     }
 
     async _searchOpenMeteo(query) {
-        const url =
-            `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=10&language=en&format=json`;
+        const lang = GLib.get_language_names()[0].split('_')[0];
+        const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=10&language=${lang}&format=json`
 
         const json = await this._getJson(url);
         if (!this._session || !json?.results)
