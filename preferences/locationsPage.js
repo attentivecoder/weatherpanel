@@ -65,12 +65,12 @@ export default class LocationsPage {
             this._refreshLocations();
         });
     }
-
+    
     _getProviderLabel() {
         const provider = this._settings.get_enum('geocoding-provider');
 
         if (provider === GEO_OPEN_METEO)
-            return _("Open-Meteo");
+            return _("Open‑Meteo");
 
         return _("OpenStreetMap");
     }
@@ -113,9 +113,7 @@ export default class LocationsPage {
 
             let cities = this._getCities();
 
-            const existingIndex = cities.findIndex(c =>
-                this._isSameLocation(c, city)
-            );
+            const existingIndex = cities.findIndex(c => this._isSameLocation(c, city));
 
             if (existingIndex !== -1) {
                 this._settings.set_int('actual-city', existingIndex);
@@ -128,10 +126,7 @@ export default class LocationsPage {
                 return;
             }
 
-            cities.push({
-                ...city,
-                displayName: this._buildDisplayName(city),
-            });
+            cities.push(city);
             this._setCities(cities);
             this._settings.set_int('actual-city', cities.length - 1);
 
@@ -147,25 +142,6 @@ export default class LocationsPage {
                 title: _('Failed to get location'),
             }));
         }
-    }
-    
-    _buildDisplayName(city) {
-        const name = city.name?.trim();
-        const region = city.region?.trim();
-        const country = city.country?.trim();
-
-        const parts = [];
-
-        if (name)
-            parts.push(name);
-
-        if (region && region !== name)
-            parts.push(region);
-
-        if (country && country !== region)
-            parts.push(country);
-
-        return parts.length ? parts.join(', ') : 'Unknown';
     }
 
     _refreshLocations() {
@@ -183,13 +159,8 @@ export default class LocationsPage {
             const isActive = i === this._actualCity;
 
             const row = new Adw.ActionRow({
-                title: city.displayName ?? city.name ?? 'Unknown',
-                subtitle: [
-                    city.region,
-                    city.postcode,
-                    city.country,
-                    `${city.lat}, ${city.lon}`,
-                ].filter(Boolean).join(' • '),
+                title: city.name ?? 'Unknown',
+                subtitle: `${city.lat}, ${city.lon}`,
                 icon_name: isActive
                     ? 'checkbox-checked-symbolic'
                     : 'checkbox-symbolic',
@@ -258,7 +229,11 @@ export default class LocationsPage {
             return;
         }
 
-        cities.push({ ...entry });
+        cities.push({
+            name: entry.name,
+            lat: entry.lat,
+            lon: entry.lon,
+        });
 
         this._setCities(cities);
 
@@ -278,7 +253,11 @@ export default class LocationsPage {
             title: _('Edit Location'),
             initialText: current.name,
             onSelect: (entry) => {
-                cities[index] = { ...entry };
+                cities[index] = {
+                    name: entry.name,
+                    lat: entry.lat,
+                    lon: entry.lon,
+                };
 
                 this._setCities(cities);
 
@@ -327,7 +306,7 @@ export default class LocationsPage {
             margin_start: 12,
             margin_end: 12,
         });
-
+        
         const providerLabel = new Gtk.Label({
             label: _("Search provider: ") + this._getProviderLabel(),
             xalign: 0,
@@ -335,6 +314,7 @@ export default class LocationsPage {
         });
 
         vbox.append(providerLabel);
+
 
         const entry = new Gtk.Entry({
             placeholder_text: _('Search city…'),
@@ -417,12 +397,7 @@ export default class LocationsPage {
             for (const r of results) {
                 const row = new Adw.ActionRow({
                     title: r.name,
-                    subtitle: [
-                        r.region,
-                        r.postcode,
-                        r.country,
-                        `${r.lat}, ${r.lon}`,
-                    ].filter(Boolean).join(' • '),
+                    subtitle: `${r.lat}, ${r.lon}`,
                     activatable: true,
                 });
 
@@ -446,3 +421,4 @@ export default class LocationsPage {
         this.page.destroy();
     }
 }
+

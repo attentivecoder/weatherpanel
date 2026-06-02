@@ -5,13 +5,13 @@ import Soup from 'gi://Soup';
 /**
  * GeolocationService (dynamic provider)
  *
- * - IP geolocation provider (user-selectable):
+ * - IP geolocation provider (user‑selectable):
  *      • ipapi.co
  *      • ipinfo.io
  *
- * - Geocoding provider (user-selectable):
+ * - Geocoding provider (user‑selectable):
  *      • OpenStreetMap (Nominatim)
- *      • Open-Meteo geocoding
+ *      • Open‑Meteo geocoding
  */
 
 const IP_API = 0;
@@ -31,29 +31,12 @@ export class GeolocationService {
      * --------------------------------------------------------- */
 
     abort() {
-        this._session?.abort();
+            this._session?.abort();
     }
 
     destroy() {
         this.abort();
         this._session = null;
-    }
-
-    /* ---------------------------------------------------------
-     * LOCATION FORMATTER (NEW)
-     * --------------------------------------------------------- */
-
-    _formatLocation(loc) {
-        if (!loc) return 'Unknown location';
-
-        const parts = [
-            loc.name,
-            loc.region,
-            loc.postcode,
-            loc.country,
-        ].filter(Boolean);
-
-        return parts.join(', ');
     }
 
     /* ---------------------------------------------------------
@@ -79,10 +62,9 @@ export class GeolocationService {
 
             if (json?.city && json?.latitude && json?.longitude) {
                 return {
-                    name: json.city ?? null,
+                    city: json.city,
                     region: json.region ?? null,
                     country: json.country_name ?? json.country ?? null,
-                    postcode: json.postal ?? null,
                     lat: Number(json.latitude),
                     lon: Number(json.longitude),
                     accuracy: 20000,
@@ -105,10 +87,9 @@ export class GeolocationService {
                 const [lat, lon] = json.loc.split(',').map(Number);
 
                 return {
-                    name: json.city ?? null,
+                    city: json.city ?? null,
                     region: json.region ?? null,
                     country: json.country ?? null,
-                    postcode: json.postal ?? null,
                     lat,
                     lon,
                     accuracy: 50000,
@@ -172,8 +153,6 @@ export class GeolocationService {
 
             return {
                 name: name ?? 'Unknown',
-                region: addr.state ?? addr.region ?? addr.county ?? null,
-                postcode: addr.postcode ?? null,
                 country: addr.country ?? loc.country ?? null,
                 lat: loc.lat,
                 lon: loc.lon,
@@ -182,8 +161,6 @@ export class GeolocationService {
 
         return {
             name: loc.city ?? 'Unknown',
-            region: loc.region ?? null,
-            postcode: null,
             country: loc.country ?? null,
             lat: loc.lat,
             lon: loc.lon,
@@ -204,8 +181,6 @@ export class GeolocationService {
 
             return {
                 name: this._buildDisplayName(r),
-                region: r.admin1 ?? r.admin2 ?? null,
-                postcode: r.postcode ?? r.postal_code ?? null,
                 country: r.country ?? null,
                 lat: loc.lat,
                 lon: loc.lon,
@@ -215,8 +190,6 @@ export class GeolocationService {
 
         return {
             name: loc.city ?? 'Unknown',
-            region: loc.region ?? null,
-            postcode: null,
             country: loc.country ?? null,
             lat: loc.lat,
             lon: loc.lon,
@@ -277,8 +250,6 @@ export class GeolocationService {
 
             return {
                 name,
-                region: addr.state ?? addr.region ?? null,
-                postcode: addr.postcode ?? null,
                 country: addr.country ?? null,
                 lat: Number(r.lat),
                 lon: Number(r.lon),
@@ -300,8 +271,6 @@ export class GeolocationService {
 
         return json.results.map(r => ({
             name: this._buildDisplayName(r),
-            region: r.admin1 ?? r.admin2 ?? null,
-            postcode: r.postcode ?? r.postal_code ?? null,
             country: r.country ?? null,
             lat: r.latitude,
             lon: r.longitude,
@@ -356,3 +325,4 @@ export class GeolocationService {
         );
     }
 }
+

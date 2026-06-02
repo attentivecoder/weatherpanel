@@ -3,8 +3,8 @@ import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
 import OpenMeteoProvider from './providers/openMeteo.js';
 import YrNoProvider from './providers/yrNo.js';
+
 import PanelButton from './ui/PanelButton.js';
-import LocationManager from './services/locationManager.js';
 
 const WEATHER_OPEN_METEO = 0;
 const WEATHER_YRNO = 1;
@@ -25,47 +25,34 @@ export default class Controller {
     constructor(extension, settings) {
         this._extension = extension;
         this._settings = settings;
-        
-        this._locationManager = new LocationManager({
-            settings,
-            geolocation: extension.geolocation,
-        });
 
         this._providerPrimary = null;
         this._providerFallback = null;
-        this._activeProvider = null;
+        this._provider = null;
 
         this._panelButton = null;
 
-        this._timers = {
-            current: 0,
-            forecast: 0,
-            status: 0,
-        };
-        
-        this._refreshInProgress = false;
-        this._settingsSignalId = null;
-        
-        this._refreshSeq = 0;
-    }
+        this._currentTimerId = 0;
+        this._forecastTimerId = 0;
 
-    /* ---------------- LIFECYCLE ---------------- */
+        this._refreshInProgress = false;
+    }
 
     enable() {
         this._initProviders();
         this._initPanelButton();
-        this._connectSettings();
-
+        this._bindSettingsSignals();        
         this._insertPanelButton();
         this._startTimers();
 
-        this.refresh(true);
-        this.refresh(false);
+        this._refreshWithFallback(true).catch(logError);
+        this._refreshWithFallback(false).catch(logError);
     }
 
     disable() {
-        this._disconnectSettings();
         this._stopTimers();
+        
+        this._settings.disconnectObject(this);
 
         if (this._panelButton) {
             this._panelButton.stop?.();
@@ -75,12 +62,10 @@ export default class Controller {
 
         this._providerPrimary?.stop?.();
         this._providerFallback?.stop?.();
-        this._locationManager?.stop?.();
 
         this._providerPrimary = null;
         this._providerFallback = null;
-        this._activeProvider = null;
-        this._locationManager = null;
+        this._provider = null;
     }
 
     /* ---------------- PROVIDERS ---------------- */
@@ -88,52 +73,58 @@ export default class Controller {
     _initProviders() {
         const providerSetting = this._settings.get_enum('provider');
 
-        const Primary = PROVIDERS[providerSetting] ?? OpenMeteoProvider;
-        const Fallback =
+        const PrimaryProvider =
+            PROVIDERS[providerSetting] ?? OpenMeteoProvider;
+
+        const FallbackProvider =
             providerSetting === WEATHER_YRNO
                 ? OpenMeteoProvider
                 : YrNoProvider;
 
-        this._providerPrimary = new Primary({ settings: this._settings });
+        this._providerPrimary = new PrimaryProvider({
+            settings: this._settings,
+        });
 
-        this._providerFallback = new Fallback({ settings: this._settings });
+        this._providerFallback = new FallbackProvider({
+            settings: this._settings,
+        });
 
-        if (!this._providerFallback?.refresh) {
-            logError(new Error('Fallback provider is invalid'));
-            this._providerFallback = this._providerPrimary;
-        }
-
-        this._setActiveProvider(this._providerPrimary);
+        this._provider = this._providerPrimary;
     }
 
     _setActiveProvider(provider) {
-        if (this._activeProvider === provider)
+        if (this._provider === provider)
             return;
 
-        this._activeProvider = provider;
+        this._provider = provider;
+        this._panelButton?.setProvider?.(provider);
+    }
+    
+    _onProviderChanged() {
+        this._providerPrimary?.stop?.();
+        this._providerFallback?.stop?.();
 
-        if (this._panelButton) {
-            this._panelButton.setProvider(provider);
-            this._panelButton.setProviderName(provider.getName());
-            
-             this.refresh(true);
-             this.refresh(false);
-        }
+        this._initProviders();
+        this._setActiveProvider(this._providerPrimary);
+
+        this._panelButton?.setProvider?.(this._providerPrimary);
+
+        this._startTimers();
+
+        this._refreshWithFallback(true).catch(logError);
+        this._refreshWithFallback(false).catch(logError);
     }
 
-    /* ---------------- PANEL UI ---------------- */
+    /* ---------------- PANEL BUTTON ---------------- */
 
     _initPanelButton() {
         this._panelButton = new PanelButton({
             settings: this._settings,
-            provider: this._activeProvider,
+            provider: this._provider,
             extension: this._extension,
         });
 
-        this._panelButton.onLocationRequested = () => this.setCurrentLocation();
-        this._panelButton.onRefreshRequested = () => this.refreshWeather();
-        this._panelButton.onPrefsRequested = () => this._extension.openPreferences();
-        this._panelButton.onWebsiteRequested = () => this._activeProvider?.openWebsite?.();
+        this._panelButton.start?.();
     }
 
     _insertPanelButton() {
@@ -169,64 +160,55 @@ export default class Controller {
         box.insert_child_at_index(actor, index);
     }
 
-    /* ---------------- REFRESH (RACE-SAFE) ---------------- */
-
-    async refresh(isCurrent) {
-        const seq = ++this._refreshSeq;
-
-        try {
-            const primary = this._providerPrimary;
-            const fallback = this._providerFallback;
-
-            if (!primary?.refresh)
-                throw new Error('Primary provider missing refresh()');
-
-            const okPrimary = await primary.refresh(isCurrent);
-
-            if (seq !== this._refreshSeq)
-                return;
-
-            if (okPrimary) {
-                this._setActiveProvider(primary);
-                return;
-            }
-
-            if (!fallback?.refresh)
-                return;
-
-            const okFallback = await fallback.refresh(isCurrent);
-
-            if (seq !== this._refreshSeq)
-                return;
-
-            if (okFallback)
-                this._setActiveProvider(fallback);
-
-        } catch (e) {
-            logError(e);
-        }
+    _reapplyPanelPosition() {
+        this._insertPanelButton();
     }
     
-    /* ---------------- ACTIONS ---------------- */
+    /* ---------------- SETTINGS SIGNALS ---------------- */
 
-    async setCurrentLocation() {
-        const city = await this._locationManager.updateCurrentLocation();
+    _bindSettingsSignals() {
+        this._settings.connectObject(
+            'changed',
+            (_, key) => {
 
-        if (!city)
-            return null;
+                if (key === 'disable-forecast') {
+                    this._startTimers();
+                    return;
+                }
 
-        this.refresh(true);
-        this.refresh(false);
+                if (
+                    key === 'refresh-interval-current' ||
+                    key === 'refresh-interval-forecast'
+                ) {
+                    this._startTimers();
+                    return;
+                }
 
-        return city;
+                if (
+                    key === 'position-in-panel' ||
+                    key === 'position-index'
+                ) {
+                    this._reapplyPanelPosition();
+                    return;
+                }
+
+                if (key === 'provider') {
+                    this._onProviderChanged();
+                    return;
+                }
+
+                if (
+                    key === 'city' ||
+                    key === 'actual-city'
+                ) {
+                    this._refreshWithFallback(true).catch(logError);
+                    this._refreshWithFallback(false).catch(logError);
+                }
+            },
+            this
+        );
     }
-    
-    async refreshWeather() {
-        const ok = await this.refresh(true);
-        return ok;
-    }
 
-    
     /* ---------------- TIMERS ---------------- */
 
     _startTimers() {
@@ -238,94 +220,67 @@ export default class Controller {
         const forecastInterval =
             this._settings.get_int('refresh-interval-forecast');
 
-        this._timers.current = this._addTimer(
-            currentInterval,
-            () => this.refresh(true)
-        );
+        const disableForecast =
+            this._settings.get_boolean('disable-forecast');
 
-        if (!this._settings.get_boolean('disable-forecast')) {
-            this._timers.forecast = this._addTimer(
-                forecastInterval,
-                () => this.refresh(false)
-            );
-        }
-
-        this._timers.status = this._addTimer(
-            60,
-            () => this._panelButton?.updateStatusLabel?.()
-        );
-    }
-
-    _addTimer(seconds, fn) {
-        return GLib.timeout_add_seconds(
+        this._currentTimerId = GLib.timeout_add_seconds(
             GLib.PRIORITY_DEFAULT,
-            seconds,
+            currentInterval,
             () => {
-                fn();
+                this._refreshWithFallback(true).catch(logError);
                 return GLib.SOURCE_CONTINUE;
             }
         );
+
+        if (!disableForecast) {
+            this._forecastTimerId = GLib.timeout_add_seconds(
+                GLib.PRIORITY_DEFAULT,
+                forecastInterval,
+                () => {
+                    this._refreshWithFallback(false).catch(logError);
+                    return GLib.SOURCE_CONTINUE;
+                }
+            );
+        }
     }
 
     _stopTimers() {
-        for (const k in this._timers) {
-            if (this._timers[k]) {
-                GLib.source_remove(this._timers[k]);
-                this._timers[k] = 0;
+        if (this._currentTimerId) {
+            GLib.source_remove(this._currentTimerId);
+            this._currentTimerId = 0;
+        }
+
+        if (this._forecastTimerId) {
+            GLib.source_remove(this._forecastTimerId);
+            this._forecastTimerId = 0;
+        }
+    }
+
+    /* ---------------- REFRESH / FALLBACK ---------------- */
+
+    async _refreshWithFallback(isCurrent) {
+        if (this._refreshInProgress)
+            return;
+
+        this._refreshInProgress = true;
+
+        try {
+            const okPrimary =
+                await this._providerPrimary.refresh(isCurrent);
+
+            if (okPrimary) {
+                this._setActiveProvider(this._providerPrimary);
+                return;
             }
-        }
-    }
 
-    /* ---------------- SETTINGS ---------------- */
+            const okFallback =
+                await this._providerFallback.refresh(isCurrent);
 
-    _connectSettings() {
-        this._settingsSignalId = this._settings.connect(
-            'changed',
-            (_, key) => this._onSettingsChanged(key)
-        );
-    }
+            if (okFallback)
+                this._setActiveProvider(this._providerFallback);
 
-    _disconnectSettings() {
-        if (this._settingsSignalId) {
-            this._settings.disconnect(this._settingsSignalId);
-            this._settingsSignalId = null;
-        }
-    }
-
-    _onSettingsChanged(key) {
-
-        switch (key) {
-
-            case 'provider':
-                this._initProviders();
-                this._startTimers();
-                this.refresh(true);
-                this.refresh(false);
-                break;
-
-            case 'refresh-interval-current':
-            case 'refresh-interval-forecast':
-            case 'disable-forecast':
-                this._startTimers();
-                break;
-
-            case 'unit':
-            case 'wind-speed-unit':
-            case 'pressure-unit':
-                this._panelButton?.refreshUI();
-                break;
-
-            case 'city':
-            case 'actual-city':
-                this.refresh(true);
-                this.refresh(false);
-                break;
-
-            case 'position-in-panel':
-            case 'position-index':
-                this._insertPanelButton();
-                break;
+        } finally {
+            this._refreshInProgress = false;
         }
     }
 }
-

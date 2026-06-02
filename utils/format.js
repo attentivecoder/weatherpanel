@@ -1,9 +1,5 @@
 import GLib from 'gi://GLib';
 
-/**
- * Pure formatting utilities for weather data.
- */
-
 /* ---------------------------
  * Temperature
  * -------------------------- */
@@ -135,13 +131,10 @@ export function formatTime(timestamp, locale = null) {
     if (Number.isNaN(date.getTime()))
         return '–';
 
-    // GNOME-safe locale fallback
     let loc = locale || GLib.get_language_names()[0] || 'en';
 
-    // Strip encoding suffixes like ".UTF-8"
     loc = loc.replace(/\.UTF-8$/i, '');
 
-    // Replace underscores with hyphens (required by ECMA-402)
     loc = loc.replace('_', '-');
 
     try {
@@ -150,7 +143,6 @@ export function formatTime(timestamp, locale = null) {
             minute: '2-digit'
         });
     } catch (e) {
-        // Final fallback
         return date.toLocaleTimeString('en-US', {
             hour: '2-digit',
             minute: '2-digit'

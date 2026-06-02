@@ -25,19 +25,11 @@ export default class PanelButton {
 
         this._lastData = null;
         this._timestampTimer = null;
-         
-        this._isRefreshing = false;        
 
         this._geolocation = new GeolocationService(this._settings);
         
         this._networkMonitor = Gio.NetworkMonitor.get_default();
         this._networkSignalId = 0;
-        
-        this._providerSignalOwner = {
-            weather: 0,
-            forecast: 0,
-            error: 0,
-        };
 
         this.actor = new St.Button({
             style_class: 'panel-button weatherpanel-button',
@@ -55,17 +47,20 @@ export default class PanelButton {
 
             if (button === Clutter.BUTTON_PRIMARY) {
                 this.menu.toggle();
+                return Clutter.EVENT_STOP;
             }
 
             if (button === Clutter.BUTTON_SECONDARY) {
-                this.onPrefsRequested?.();
+                this._openPrefs();
+                return Clutter.EVENT_STOP;
             }
 
             if (button === Clutter.BUTTON_MIDDLE) {
-                this.onWebsiteRequested?.();
+                this._openWebsite();
+                return Clutter.EVENT_STOP;
             }
 
-            return Clutter.EVENT_STOP;
+            return Clutter.EVENT_PROPAGATE;
         });
     }
 
@@ -107,7 +102,7 @@ export default class PanelButton {
                 this._lastData = data;
 
                 this._updateUI(data);
-                this.updateStatusLabel();
+                this._updateStatusLabel();
             },
             this
         );
@@ -121,7 +116,7 @@ export default class PanelButton {
                 this._lastData.forecast = forecast;
 
                 this._renderForecast(forecast);
-                this.updateStatusLabel();
+                this._updateStatusLabel();
             },
             this
         );
@@ -267,7 +262,7 @@ export default class PanelButton {
         this._renderCityHeader();
     }
     
-     _connectMenuSignals() {
+    _connectMenuSignals() {
         this._menuOpenSignalId = this.menu.connect(
             'open-state-changed',
             (menu, isOpen) => {
@@ -516,7 +511,7 @@ export default class PanelButton {
         );
 
         this._connectProviderSignals();
-        this._connectNetworkSignals();        
+        this._connectNetworkSignals();
         this._startTimestampTimer();
     }
     
@@ -528,7 +523,7 @@ export default class PanelButton {
             'network-changed',
             async (_monitor, available) => {
                 try {
-                    this.updateStatusLabel();
+                    this._updateStatusLabel();
 
                     if (!this._hasCity())
                         return;
@@ -600,21 +595,8 @@ export default class PanelButton {
         this._renderCurrent(data.current);
         this._renderForecast(data.forecast);
 
-        this.updateStatusLabel();
+        this._updateStatusLabel();
     }
-    
-    refreshUI() {
-        if (!this._lastData)
-            return;
-
-        this._updateUI(this._lastData);
-    }
-    
-    setProviderName(name) {
-        if (this._providerRow)
-            this._providerRow.label = `Weather API: ${name}`;
-    }
-
 
     _renderCurrent(current) {
         if (!current || !this._currentItem)
@@ -686,7 +668,7 @@ export default class PanelButton {
         this._currentItem.add_child(root);
     }
     
-     _renderOfflineState() {
+    _renderOfflineState() {
         if (!this._currentItem)
             return;
 
@@ -705,7 +687,7 @@ export default class PanelButton {
             }));
         }
 
-        this.updateStatusLabel();
+        this._updateStatusLabel();
     }
 
     /* =========================================================
@@ -772,33 +754,14 @@ export default class PanelButton {
 
         this._cityItem.destroy_all_children();
 
-        if (!city) {
-            this._cityItem.add_child(
-                new St.Label({
-                    text: _('No location selected'),
-                    style_class: 'weatherpanel-city-header',
-                })
-            );
-            return;
-        }
-
-        const parts = [];
-
-        if (city.name)
-            parts.push(city.name);
-
-        if (city.region && city.region !== city.name)
-            parts.push(city.region);
-
-        if (city.country)
-            parts.push(city.country);
-
-        let text = parts.join(', ');
-
         this._cityItem.add_child(
             new St.Label({
-                text,
-                style_class: 'weatherpanel-city-header',
+                text: city
+                    ? city.name
+                    : _('No location selected'),
+
+                style_class:
+                    'weatherpanel-city-header',
             })
         );
     }
@@ -816,14 +779,14 @@ export default class PanelButton {
                 GLib.PRIORITY_DEFAULT,
                 60,
                 () => {
-                    this.updateStatusLabel();
+                    this._updateStatusLabel();
 
                     return GLib.SOURCE_CONTINUE;
                 }
             );
     }
 
-    updateStatusLabel() {
+    _updateStatusLabel() {
         if (!this._statusLabel)
             return;
 
