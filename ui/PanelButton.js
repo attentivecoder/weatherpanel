@@ -621,6 +621,7 @@ export default class PanelButton {
             'hpa',
             'inhg',
             'bar',
+            'mmhg',
         ][this._settings.get_enum('pressure-unit')];
 
         const root = new St.BoxLayout({

@@ -108,6 +108,11 @@ export function formatPressure(hPa, unit = 'hpa', decimals = 1) {
             label = 'inHg';
             break;
 
+        case 'mmhg':
+            value = p * 0.750061683;
+            label = 'mmHg';
+            break;
+            
         case 'hpa':
         default:
             value = p;

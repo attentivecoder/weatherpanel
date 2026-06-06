@@ -112,7 +112,7 @@ export class Forecast {
             this._settings.get_enum('wind-speed-unit')
         ];
 
-        const pressureUnit = ['hpa', 'inhg', 'bar'][
+        const pressureUnit = ['hpa', 'inhg', 'bar', 'mmhg'][
             this._settings.get_enum('pressure-unit')
         ];
 

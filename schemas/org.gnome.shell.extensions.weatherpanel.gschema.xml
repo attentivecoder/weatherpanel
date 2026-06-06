@@ -43,6 +43,7 @@
     <value value="0" nick="hpa"/>
     <value value="1" nick="inhg"/>
     <value value="2" nick="bar"/>
+    <value value="3" nick="mmhg"/>
   </enum>
 
   <!-- ===================== MAIN SCHEMA ===================== -->
