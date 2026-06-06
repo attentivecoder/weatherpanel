@@ -925,6 +925,11 @@ export default class PanelButton {
         if (!this.actor)
             return;
             
+        if (this._forecastWidget) {
+            this._forecastWidget.destroy();
+            this._forecastWidget = null;
+        }
+            
         this._settings.disconnectObject(this);
         this._disconnectProviderSignals();
         this._disconnectNetworkSignals();

@@ -34,6 +34,9 @@ export class Forecast {
     }
 
     setLoading() {
+        if (!this._container?.get_parent())
+            return;
+        
         this._clear();
 
         this._container.add_child(new St.Label({
@@ -48,12 +51,14 @@ export class Forecast {
         if (!this._settings)
             return;
 
-        // Disconnect previous connections
         this._settings.disconnectObject(this);
 
         this._settings.connectObject(
             'changed',
             (_, key) => {
+                if (!this.actor || !this._container)
+                    return;
+
                 if (
                     key === 'unit' ||
                     key === 'wind-speed-unit' ||
@@ -94,6 +99,9 @@ export class Forecast {
     /* ---------------- RENDER ---------------- */
 
     _render() {
+        if (!this.actor)
+            return;
+    
         if (!this._container || !this._container.get_parent())
             return;
 
@@ -218,10 +226,24 @@ export class Forecast {
     destroy() {
         this._settings?.disconnectObject(this);
 
-        this._scroll = null;
-        this._container = null;
+        this._data = null;
+        this._settings = null;
 
-        this.actor.destroy();
+        if (this._container) {
+            this._container.destroy_all_children();
+            this._container.destroy();
+            this._container = null;
+        }
+
+        if (this._scroll) {
+            this._scroll.destroy();
+            this._scroll = null;
+        }
+
+        if (this.actor) {
+            this.actor.destroy();
+            this.actor = null;
+        }
     }
 }
 

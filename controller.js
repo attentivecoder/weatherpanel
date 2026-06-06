@@ -29,6 +29,9 @@ export default class Controller {
         this._providerPrimary = null;
         this._providerFallback = null;
         this._provider = null;
+        
+        this._alive = true;
+        this._refreshToken = 0;
 
         this._panelButton = null;
 
@@ -50,6 +53,9 @@ export default class Controller {
     }
 
     disable() {
+        this._alive = false;
+        this._refreshToken++;
+        
         this._stopTimers();
         
         this._settings.disconnectObject(this);
@@ -62,6 +68,7 @@ export default class Controller {
 
         this._providerPrimary?.stop?.();
         this._providerFallback?.stop?.();
+        this._refreshInProgress = false;
 
         this._providerPrimary = null;
         this._providerFallback = null;
@@ -93,6 +100,9 @@ export default class Controller {
     }
 
     _setActiveProvider(provider) {
+        if (!this._alive)
+            return;
+        
         if (this._provider === provider)
             return;
 
@@ -103,6 +113,7 @@ export default class Controller {
     _onProviderChanged() {
         this._providerPrimary?.stop?.();
         this._providerFallback?.stop?.();
+        this._refreshInProgress = false;
 
         this._initProviders();
         this._setActiveProvider(this._providerPrimary);
@@ -227,6 +238,9 @@ export default class Controller {
             GLib.PRIORITY_DEFAULT,
             currentInterval,
             () => {
+                if (!this._alive)
+                    return GLib.SOURCE_CONTINUE;
+        
                 this._refreshWithFallback(true).catch(logError);
                 return GLib.SOURCE_CONTINUE;
             }
@@ -237,6 +251,9 @@ export default class Controller {
                 GLib.PRIORITY_DEFAULT,
                 forecastInterval,
                 () => {
+                    if (!this._alive)
+                        return GLib.SOURCE_CONTINUE;
+                    
                     this._refreshWithFallback(false).catch(logError);
                     return GLib.SOURCE_CONTINUE;
                 }
@@ -259,14 +276,22 @@ export default class Controller {
     /* ---------------- REFRESH / FALLBACK ---------------- */
 
     async _refreshWithFallback(isCurrent) {
+        if(!this._alive)
+            return;
+    
         if (this._refreshInProgress)
             return;
 
         this._refreshInProgress = true;
+        
+        const token = this._refreshToken;
 
         try {
             const okPrimary =
                 await this._providerPrimary.refresh(isCurrent);
+                
+            if(!this._alive || token !== this._refreshToken)
+                return;
 
             if (okPrimary) {
                 this._setActiveProvider(this._providerPrimary);
@@ -275,6 +300,9 @@ export default class Controller {
 
             const okFallback =
                 await this._providerFallback.refresh(isCurrent);
+                
+            if (!this._alive || token !== this._refreshToken)
+                return;
 
             if (okFallback)
                 this._setActiveProvider(this._providerFallback);
