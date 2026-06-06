@@ -29,7 +29,7 @@ export default class PanelButton {
         this._geolocation = new GeolocationService(this._settings);
         
         this._networkMonitor = Gio.NetworkMonitor.get_default();
-        this._networkSignalId = 0;
+        this._networkSignalId = null;
 
         this.actor = new St.Button({
             style_class: 'panel-button weatherpanel-button',
@@ -276,9 +276,7 @@ export default class PanelButton {
     
     _disconnectMenuSignals() {
         if (this.menu && this._menuOpenSignalId) {
-            try {
-                this.menu.disconnect(this._menuOpenSignalId);
-            } catch (_) {}
+            this.menu.disconnect(this._menuOpenSignalId);
         }
 
         this._menuOpenSignalId = null;
@@ -553,18 +551,14 @@ export default class PanelButton {
                 }
             }
         );
-
     }
     
     _disconnectNetworkSignals() {
         if (this._networkMonitor && this._networkSignalId) {
-            try {
-                this._networkMonitor.disconnect(this._networkSignalId);
-            } catch (e) {
-                logError(e);
-            }
-            this._networkSignalId = 0;
+            this._networkMonitor.disconnect(this._networkSignalId);
         }
+        
+        this._networkSignalId = null;
     }
 
     /* =========================================================

@@ -36,10 +36,10 @@ jobs:
             -x "schemas/gschemas.compiled" \
             -x ".git/*" \
             -x ".gitignore" \
-            -x "test-soup.js" \
             -x "node_modules/*" \
             -x "package.json" \
-            -x "package-lock.json"
+            -x "package-lock.json" \
+            -x "media/iconSmall.png"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
