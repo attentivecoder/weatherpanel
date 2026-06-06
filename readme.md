@@ -182,7 +182,8 @@ Create a ZIP bundle:
             -x ".gitignore" \
             -x "node_modules/*" \
             -x "package.json" \
-            -x "package-lock.json"
+            -x "package-lock.json" \
+            -x "media/iconSmall.png"
 ```
 
 ## ❤️ Credits
