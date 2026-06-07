@@ -84,7 +84,7 @@ It supports **multiple weather providers**, **multiple location search providers
 ### Units
 - Temperature: Celsius / Fahrenheit / Kelvin
 - Wind speed: km/h / mph / m/s / knots
-- Pressure: hPa / inHg / bar
+- Pressure: hPa / inHg / bar / mmhg
 
 ### Forecast
 - Enable/disable forecast section
