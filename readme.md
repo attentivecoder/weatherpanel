@@ -46,7 +46,7 @@ It supports **multiple weather providers**, **multiple location search providers
 - Temperature (C / F / K)
 - Wind speed (km/h, mph, m/s, knots)
 - Wind direction
-- Pressure (hPa, inHg, bar)
+- Pressure (hPa, inHg, bar, mmHg)
 - Weather summary and icon
 
 ### 📅 Forecast section
@@ -84,7 +84,7 @@ It supports **multiple weather providers**, **multiple location search providers
 ### Units
 - Temperature: Celsius / Fahrenheit / Kelvin
 - Wind speed: km/h / mph / m/s / knots
-- Pressure: hPa / inHg / bar / mmhg
+- Pressure: hPa / inHg / bar / mmHg
 
 ### Forecast
 - Enable/disable forecast section
