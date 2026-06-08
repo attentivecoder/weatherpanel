@@ -134,7 +134,7 @@ export default class SettingsPage {
 
         const tempItems = ['°C', '°F', 'K'];
         const windItems = ['km/h', 'mph', 'm/s', 'knots'];
-        const pressureItems = ['hPa', 'inHg', 'bar', 'mmhg'];
+        const pressureItems = ['hPa', 'inHg', 'bar', 'mmHg'];
 
         const temp = this._createCombo(
             _('Temperature'),

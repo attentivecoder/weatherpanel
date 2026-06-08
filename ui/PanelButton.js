@@ -347,7 +347,7 @@ export default class PanelButton {
                         Main.notify(_('Location already exists — selected'));
 
                         if (this._hasCity())
-                            this._provider?.refresh?.(true)?.catch?.(logError);
+                            this._provider?.refresh(true).catch(logError);
 
                         return;
                     }
@@ -360,7 +360,7 @@ export default class PanelButton {
                     Main.notify(_('Location updated'));
 
                     if (this._hasCity())
-                        this._provider?.refresh?.(true)?.catch?.(logError);
+                        this._provider?.refresh(true).catch(logError);
 
                 } catch (e) {
                     logError(e);
@@ -502,7 +502,7 @@ export default class PanelButton {
                 if (key === 'city' || key === 'actual-city') {
                     this._renderCityHeader();
                     this._updateUI(this._lastData);
-                    this._provider?.refresh?.(true)?.catch?.(logError);
+                    this._provider?.refresh(true).catch(logError);
                 }
             },
             this
@@ -539,7 +539,7 @@ export default class PanelButton {
                     this._isRefreshing = true;
 
                     try {
-                        await this._provider?.refresh?.(true);
+                        await this._provider?.refresh(true);
                     } catch (e) {
                         logError(e);
                     } finally {
@@ -914,10 +914,8 @@ export default class PanelButton {
 
     start() {
         if (this._hasCity())
-            this._provider
-                ?.refresh?.(true)
-                .catch?.(logError);
-
+            this._provider?.refresh(true).catch(logError);
+            
         this._startTimestampTimer();
     }
 

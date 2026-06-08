@@ -61,13 +61,13 @@ export default class Controller {
         this._settings.disconnectObject(this);
 
         if (this._panelButton) {
-            this._panelButton.stop?.();
+            this._panelButton.stop();
             this._panelButton.destroy();
             this._panelButton = null;
         }
 
-        this._providerPrimary?.stop?.();
-        this._providerFallback?.stop?.();
+        this._providerPrimary?.stop();
+        this._providerFallback?.stop();
         this._refreshInProgress = false;
 
         this._providerPrimary = null;
@@ -107,18 +107,19 @@ export default class Controller {
             return;
 
         this._provider = provider;
-        this._panelButton?.setProvider?.(provider);
+        this._panelButton?.setProvider(provider);
     }
     
     _onProviderChanged() {
-        this._providerPrimary?.stop?.();
-        this._providerFallback?.stop?.();
-        this._refreshInProgress = false;
+        this._refreshToken++;
+
+        this._providerPrimary?.stop();
+        this._providerFallback?.stop();
 
         this._initProviders();
         this._setActiveProvider(this._providerPrimary);
 
-        this._panelButton?.setProvider?.(this._providerPrimary);
+        this._panelButton?.setProvider(this._providerPrimary);
 
         this._startTimers();
 
@@ -135,7 +136,7 @@ export default class Controller {
             extension: this._extension,
         });
 
-        this._panelButton.start?.();
+        this._panelButton.start();
     }
 
     _insertPanelButton() {
@@ -163,7 +164,7 @@ export default class Controller {
             index = box.get_n_children();
 
         const actor = this._panelButton.actor;
-        const oldParent = actor.get_parent?.();
+        const oldParent = actor.get_parent();
 
         if (oldParent)
             oldParent.remove_child(actor);
@@ -237,10 +238,7 @@ export default class Controller {
         this._currentTimerId = GLib.timeout_add_seconds(
             GLib.PRIORITY_DEFAULT,
             currentInterval,
-            () => {
-                if (!this._alive)
-                    return GLib.SOURCE_CONTINUE;
-        
+            () => {        
                 this._refreshWithFallback(true).catch(logError);
                 return GLib.SOURCE_CONTINUE;
             }
@@ -250,10 +248,7 @@ export default class Controller {
             this._forecastTimerId = GLib.timeout_add_seconds(
                 GLib.PRIORITY_DEFAULT,
                 forecastInterval,
-                () => {
-                    if (!this._alive)
-                        return GLib.SOURCE_CONTINUE;
-                    
+                () => {                    
                     this._refreshWithFallback(false).catch(logError);
                     return GLib.SOURCE_CONTINUE;
                 }
@@ -276,7 +271,7 @@ export default class Controller {
     /* ---------------- REFRESH / FALLBACK ---------------- */
 
     async _refreshWithFallback(isCurrent) {
-        if(!this._alive)
+        if (!this._alive)
             return;
     
         if (this._refreshInProgress)
@@ -290,7 +285,7 @@ export default class Controller {
             const okPrimary =
                 await this._providerPrimary.refresh(isCurrent);
                 
-            if(!this._alive || token !== this._refreshToken)
+            if(token !== this._refreshToken)
                 return;
 
             if (okPrimary) {
@@ -301,7 +296,7 @@ export default class Controller {
             const okFallback =
                 await this._providerFallback.refresh(isCurrent);
                 
-            if (!this._alive || token !== this._refreshToken)
+            if (token !== this._refreshToken)
                 return;
 
             if (okFallback)
