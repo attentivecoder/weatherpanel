@@ -1,0 +1,349 @@
+/* =========================================================
+   PANEL BUTTON
+   ========================================================= */
+
+.panel-button.weatherpanel-button {
+    padding-left: 14px;
+    padding-right: 14px;
+    spacing: 6px;
+}
+
+.panel-button.weatherpanel-button:hover {
+    background-color: rgba(127,127,127,0.10);
+}
+
+.panel-button.weatherpanel-button:active,
+.panel-button.weatherpanel-button.active {
+    background-color: rgba(127,127,127,0.18);
+}
+
+.panel-button.weatherpanel-button > StIcon {
+    icon-size: 16px;
+}
+
+.weatherpanel-icon:ltr {
+    padding-right: 6px;
+}
+
+.weatherpanel-icon:rtl {
+    padding-left: 6px;
+}
+
+/* =========================================================
+   ROOT POPUP
+   ========================================================= */
+
+.weatherpanel-menu .popup-menu-content {
+    padding: 0;
+    spacing: 0;
+}
+
+.weatherpanel-root-item {
+    padding: 0;
+    spacing: 0;
+    background-color: transparent;
+}
+
+.weatherpanel-menu-root {
+    width: 470px;
+    padding: 6px 4px 0 4px;
+    spacing: 0;
+}
+
+/* Secondary text: a neutral grey reads on light and dark styles. */
+.weatherpanel-hero-summary,
+.weatherpanel-hero-sun,
+.weatherpanel-tile-caption,
+.weatherpanel-section-header,
+.weatherpanel-hour-time,
+.weatherpanel-hour-rain,
+.weatherpanel-day-summary,
+.weatherpanel-day-rain,
+.weatherpanel-day-min,
+.weatherpanel-status-label,
+.weatherpanel-provider-row,
+.weatherpanel-offline-label,
+.weatherpanel-forecast-loading {
+    color: #8f8f94;
+}
+
+/* =========================================================
+   CITY HEADER
+   ========================================================= */
+
+.weatherpanel-city-box {
+    padding: 8px 16px 0 16px;
+}
+
+.weatherpanel-menu .popup-menu-content StLabel.weatherpanel-city-header {
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+/* =========================================================
+   HERO (current conditions)
+   ========================================================= */
+
+.weatherpanel-current-box {
+    padding: 4px 12px 8px 12px;
+    spacing: 8px;
+}
+
+.weatherpanel-hero {
+    spacing: 18px;
+    padding: 4px 4px 6px 4px;
+}
+
+.weatherpanel-hero-icon {
+    icon-size: 80px;
+}
+
+.weatherpanel-hero-temp {
+    font-size: 38px;
+    font-weight: 300;
+}
+
+.weatherpanel-hero-summary {
+    font-size: 15px;
+}
+
+.weatherpanel-hero-sun {
+    spacing: 6px;
+    padding-top: 6px;
+    font-size: 13px;
+}
+
+.weatherpanel-hero-sun-icon {
+    icon-size: 16px;
+}
+
+.weatherpanel-hero-sun-icon:ltr {
+    margin-left: 4px;
+}
+
+/* ---- detail tiles ---- */
+
+.weatherpanel-tile-row {
+    spacing: 8px;
+}
+
+.weatherpanel-tile {
+    width: 123px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    background-color: rgba(127,127,127,0.12);
+    spacing: 2px;
+}
+
+.weatherpanel-tile-caption {
+    font-size: 11px;
+}
+
+.weatherpanel-tile-value {
+    font-size: 14px;
+    font-weight: bold;
+}
+
+/* ---- walk window ---- */
+
+.weatherpanel-walk {
+    padding: 8px 12px;
+    border-radius: 10px;
+    background-color: rgba(53,132,228,0.18);
+    font-size: 13px;
+    font-weight: bold;
+}
+
+/* =========================================================
+   FORECAST
+   ========================================================= */
+
+.weatherpanel-forecast-root {
+    padding: 0 12px 6px 12px;
+}
+
+.weatherpanel-forecast {
+    spacing: 6px;
+}
+
+.weatherpanel-section-header {
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    padding: 8px 4px 0 4px;
+}
+
+/* ---- hourly strip / detail cards ---- */
+
+.weatherpanel-hourly-row {
+    spacing: 4px;
+}
+
+.weatherpanel-hour {
+    padding: 6px 2px;
+    border-radius: 10px;
+    spacing: 2px;
+    text-align: center;
+}
+
+.weatherpanel-hour:hover {
+    background-color: rgba(127,127,127,0.12);
+}
+
+.weatherpanel-hour-icon {
+    icon-size: 22px;
+    padding: 2px 0;
+}
+
+.weatherpanel-hour-time,
+.weatherpanel-hour-rain {
+    font-size: 11px;
+}
+
+.weatherpanel-hour-temp {
+    font-size: 14px;
+    font-weight: bold;
+}
+
+/* ---- days ---- */
+
+.weatherpanel-days-scroll {
+    max-height: 380px;
+}
+
+.weatherpanel-days {
+    spacing: 2px;
+}
+
+.weatherpanel-day {
+    padding: 6px 10px;
+    border-radius: 10px;
+}
+
+.weatherpanel-day:hover,
+.weatherpanel-day:focus {
+    background-color: rgba(127,127,127,0.12);
+}
+
+.weatherpanel-day.expanded {
+    background-color: rgba(127,127,127,0.16);
+}
+
+.weatherpanel-day-row {
+    spacing: 10px;
+}
+
+.weatherpanel-day-name {
+    min-width: 90px;
+    font-weight: bold;
+}
+
+.weatherpanel-day-icon {
+    icon-size: 20px;
+}
+
+.weatherpanel-day-rain-icon {
+    icon-size: 12px;
+    color: #62a0ea;
+}
+
+.weatherpanel-day-rain {
+    min-width: 36px;
+    font-size: 12px;
+}
+
+.weatherpanel-day-min,
+.weatherpanel-day-max {
+    min-width: 34px;
+    text-align: right;
+}
+
+.weatherpanel-day-max {
+    font-weight: bold;
+}
+
+.weatherpanel-day-chevron {
+    icon-size: 12px;
+}
+
+.weatherpanel-day-details {
+    padding: 6px 4px 10px 4px;
+    spacing: 6px;
+}
+
+.weatherpanel-chip-row {
+    spacing: 6px;
+}
+
+.weatherpanel-chip {
+    padding: 4px 10px;
+    border-radius: 99px;
+    background-color: rgba(127,127,127,0.14);
+    spacing: 4px;
+    font-size: 12px;
+}
+
+.weatherpanel-chip-icon {
+    icon-size: 14px;
+}
+
+.weatherpanel-forecast-loading {
+    padding: 16px;
+    font-style: italic;
+}
+
+/* =========================================================
+   BUTTON BAR
+   ========================================================= */
+
+.weatherpanel-button-box {
+    spacing: 8px;
+    padding: 10px 14px 4px 14px;
+}
+
+.popup-menu-item.weatherpanel-button-action {
+    border-radius: 99px;
+    padding: 8px 10px;
+    background-color: rgba(127,127,127,0.10);
+}
+
+.popup-menu-item.weatherpanel-button-action:hover {
+    background-color: rgba(127,127,127,0.18);
+}
+
+.popup-menu-item.weatherpanel-button-action:active {
+    background-color: rgba(127,127,127,0.26);
+}
+
+.weatherpanel-button-action-icon {
+    icon-size: 16px;
+}
+
+/* =========================================================
+   BOTTOM ROW
+   ========================================================= */
+
+.weatherpanel-bottom-row {
+    padding: 6px 16px 12px 16px;
+}
+
+.weatherpanel-provider-row {
+    background-color: transparent;
+    border: none;
+    box-shadow: none;
+    font-size: 11px;
+}
+
+.weatherpanel-provider-row:hover {
+    color: #c0bfbc;
+}
+
+.weatherpanel-status-label {
+    font-size: 11px;
+}
+
+.weatherpanel-offline-label {
+    font-size: 11px;
+    padding-top: 6px;
+}

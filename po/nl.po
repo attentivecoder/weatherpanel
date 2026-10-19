@@ -1,0 +1,682 @@
+# Dutch translation for WeatherPanel.
+# Copyright (C) 2026 WeatherPanel contributors
+# This file is distributed under the same license as the WeatherPanel
+# project.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version:  WeatherPanel\n"
+"Report-Msgid-Bugs-To: "
+"https://github.com/attentivecoder/weatherpanel/issues\n"
+"POT-Creation-Date: 2026-10-17 08:38+0200\n"
+"PO-Revision-Date: 2026-10-19 23:52+0200\n"
+"Last-Translator: \n"
+"Language: nl\n"
+"Language-Team: Dutch\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: preferences/locationsPage.js:24 preferences/locationsPage.js:52
+#: ui/PanelButton.js:300
+msgid "Locations"
+msgstr "Locaties"
+
+#: preferences/locationsPage.js:32 preferences/locationsPage.js:326
+msgid "Add"
+msgstr "Toevoegen"
+
+#: preferences/locationsPage.js:39
+msgid "Use approximate location"
+msgstr "Geschatte locatie gebruiken"
+
+#: preferences/locationsPage.js:77
+msgid "Open‑Meteo"
+msgstr "Open‑Meteo"
+
+#: preferences/locationsPage.js:79
+msgid "OpenStreetMap"
+msgstr "OpenStreetMap"
+
+#: preferences/locationsPage.js:132 preferences/locationsPage.js:264
+#: ui/PanelButton.js:343
+msgid "Location already exists — selected"
+msgstr "Locatie bestaat al — geselecteerd"
+
+#: preferences/locationsPage.js:145 preferences/locationsPage.js:274
+msgid "Location added"
+msgstr "Locatie toegevoegd"
+
+#: preferences/locationsPage.js:154
+msgid "Failed to get location"
+msgstr "Kan locatie niet bepalen"
+
+#: preferences/locationsPage.js:178 providers/openMeteo.js:178
+#: providers/yrNo.js:207 providers/yrNo.js:209
+msgid "Unknown"
+msgstr "Onbekend"
+
+#: preferences/locationsPage.js:218
+msgid "Location changed"
+msgstr "Locatie gewijzigd"
+
+#: preferences/locationsPage.js:248
+msgid "Add Location"
+msgstr "Locatie toevoegen"
+
+#: preferences/locationsPage.js:286
+msgid "Edit Location"
+msgstr "Locatie bewerken"
+
+#: preferences/locationsPage.js:293 ui/PanelButton.js:356
+msgid "Location updated"
+msgstr "Locatie bijgewerkt"
+
+#: preferences/locationsPage.js:309
+msgid "Location removed"
+msgstr "Locatie verwijderd"
+
+#: preferences/locationsPage.js:327
+msgid "Close"
+msgstr "Sluiten"
+
+#: preferences/locationsPage.js:343
+msgid "Search provider: "
+msgstr "Zoekdienst: "
+
+#: preferences/locationsPage.js:351
+msgid "Search city…"
+msgstr "Stad zoeken…"
+
+#: preferences/locationsPage.js:413
+msgid "No internet connection"
+msgstr "Geen internetverbinding"
+
+#: preferences/locationsPage.js:423
+msgid "No results found"
+msgstr "Geen resultaten gevonden"
+
+#: preferences/locationsPage.js:448
+msgid "Unable to search — service unavailable"
+msgstr "Zoeken niet mogelijk — dienst niet beschikbaar"
+
+#: preferences/settingsPage.js:18 ui/PanelButton.js:398
+msgid "Settings"
+msgstr "Instellingen"
+
+#: preferences/settingsPage.js:34
+msgid "General"
+msgstr "Algemeen"
+
+#: preferences/settingsPage.js:86
+msgid "Current Weather Refresh (min)"
+msgstr "Verversen huidig weer (min)"
+
+#: preferences/settingsPage.js:87
+msgid "Forecast Refresh (min)"
+msgstr "Verversen verwachting (min)"
+
+#: preferences/settingsPage.js:88
+msgid "Disable Forecast"
+msgstr "Verwachting uitschakelen"
+
+#: preferences/settingsPage.js:89
+msgid "Forecast Days"
+msgstr "Verwachtingsdagen"
+
+#: preferences/settingsPage.js:89
+msgid "Including today"
+msgstr "Inclusief vandaag"
+
+#: preferences/settingsPage.js:95
+msgid "Weather Provider"
+msgstr "Weerdienst"
+
+#: preferences/settingsPage.js:96
+msgid "Choose which API to fetch weather data from"
+msgstr "Kies van welke dienst de weergegevens worden opgehaald"
+
+#: preferences/settingsPage.js:111
+msgid "Location Search Provider"
+msgstr "Dienst voor locaties zoeken"
+
+#: preferences/settingsPage.js:112
+msgid "Choose how location search behaves"
+msgstr "Kies hoe het zoeken naar locaties werkt"
+
+#: preferences/settingsPage.js:131
+msgid "IP Geolocation Provider"
+msgstr "Dienst voor IP-geolocatie"
+
+#: preferences/settingsPage.js:132
+msgid "Choose how your approximate location is detected"
+msgstr "Kies hoe je geschatte locatie wordt bepaald"
+
+#: preferences/settingsPage.js:152
+msgid "Units"
+msgstr "Eenheden"
+
+#: preferences/settingsPage.js:153
+msgid "“Automatic” uses the units common in your region."
+msgstr "“Automatisch” gebruikt de eenheden die in je regio gangbaar zijn."
+
+#: preferences/settingsPage.js:163 utils/format.js:90
+msgid "knots"
+msgstr "knopen"
+
+#: preferences/settingsPage.js:164
+msgid "Beaufort"
+msgstr "Beaufort"
+
+#: preferences/settingsPage.js:170
+msgid "Millimeters"
+msgstr "Millimeter"
+
+#: preferences/settingsPage.js:171
+msgid "Inches"
+msgstr "Inch"
+
+#: preferences/settingsPage.js:174
+msgid "Temperature"
+msgstr "Temperatuur"
+
+#: preferences/settingsPage.js:175
+msgid "Wind Speed"
+msgstr "Windsnelheid"
+
+#: preferences/settingsPage.js:176 ui/PanelButton.js:657
+msgid "Pressure"
+msgstr "Luchtdruk"
+
+#: preferences/settingsPage.js:177
+msgid "Precipitation"
+msgstr "Neerslag"
+
+#: preferences/settingsPage.js:185
+msgid "Decimal Places"
+msgstr "Decimalen"
+
+#: preferences/settingsPage.js:185
+msgid "For temperature and wind"
+msgstr "Voor temperatuur en wind"
+
+#: preferences/settingsPage.js:192
+msgid "Panel"
+msgstr "Paneel"
+
+#: preferences/settingsPage.js:196
+msgid "Far Left"
+msgstr "Uiterst links"
+
+#: preferences/settingsPage.js:197
+msgid "Left"
+msgstr "Links"
+
+#: preferences/settingsPage.js:198
+msgid "Center"
+msgstr "Midden"
+
+#: preferences/settingsPage.js:199
+msgid "Right"
+msgstr "Rechts"
+
+#: preferences/settingsPage.js:200
+msgid "Far Right"
+msgstr "Uiterst rechts"
+
+#: preferences/settingsPage.js:203
+msgid "Position in Panel"
+msgstr "Positie in paneel"
+
+#: preferences/settingsPage.js:226
+#, python-format
+msgid "Automatic (%s)"
+msgstr "Automatisch (%s)"
+
+#: providers/openMeteo.js:16 providers/yrNo.js:10
+msgid "Clear sky"
+msgstr "Onbewolkt"
+
+#: providers/openMeteo.js:17
+msgid "Mainly clear"
+msgstr "Overwegend helder"
+
+#: providers/openMeteo.js:18 providers/yrNo.js:12
+msgid "Partly cloudy"
+msgstr "Half bewolkt"
+
+#: providers/openMeteo.js:19
+msgid "Overcast"
+msgstr "Zwaar bewolkt"
+
+#: providers/openMeteo.js:21 providers/yrNo.js:14
+msgid "Fog"
+msgstr "Mist"
+
+#: providers/openMeteo.js:22
+msgid "Rime fog"
+msgstr "Rijpmist"
+
+#: providers/openMeteo.js:24
+msgid "Light drizzle"
+msgstr "Lichte motregen"
+
+#: providers/openMeteo.js:25
+msgid "Drizzle"
+msgstr "Motregen"
+
+#: providers/openMeteo.js:26
+msgid "Dense drizzle"
+msgstr "Dichte motregen"
+
+#: providers/openMeteo.js:27
+msgid "Freezing drizzle"
+msgstr "Onderkoelde motregen"
+
+#: providers/openMeteo.js:28
+msgid "Dense freezing drizzle"
+msgstr "Dichte onderkoelde motregen"
+
+#: providers/openMeteo.js:30 providers/yrNo.js:15
+msgid "Light rain"
+msgstr "Lichte regen"
+
+#: providers/openMeteo.js:31 providers/yrNo.js:16
+msgid "Rain"
+msgstr "Regen"
+
+#: providers/openMeteo.js:32 providers/yrNo.js:17
+msgid "Heavy rain"
+msgstr "Zware regen"
+
+#: providers/openMeteo.js:33
+msgid "Freezing rain"
+msgstr "IJzel"
+
+#: providers/openMeteo.js:34
+msgid "Heavy freezing rain"
+msgstr "Zware ijzel"
+
+#: providers/openMeteo.js:36 providers/yrNo.js:39
+msgid "Light snow"
+msgstr "Lichte sneeuw"
+
+#: providers/openMeteo.js:37 providers/yrNo.js:40
+msgid "Snow"
+msgstr "Sneeuw"
+
+#: providers/openMeteo.js:38 providers/yrNo.js:41
+msgid "Heavy snow"
+msgstr "Zware sneeuwval"
+
+#: providers/openMeteo.js:39
+msgid "Snow grains"
+msgstr "Motsneeuw"
+
+#: providers/openMeteo.js:41 providers/yrNo.js:21
+msgid "Light rain showers"
+msgstr "Lichte regenbuien"
+
+#: providers/openMeteo.js:42 providers/yrNo.js:22
+msgid "Rain showers"
+msgstr "Regenbuien"
+
+#: providers/openMeteo.js:43
+msgid "Violent rain showers"
+msgstr "Zeer zware regenbuien"
+
+#: providers/openMeteo.js:44 providers/yrNo.js:46
+msgid "Snow showers"
+msgstr "Sneeuwbuien"
+
+#: providers/openMeteo.js:45 providers/yrNo.js:47
+msgid "Heavy snow showers"
+msgstr "Zware sneeuwbuien"
+
+#: providers/openMeteo.js:47
+msgid "Thunderstorm"
+msgstr "Onweer"
+
+#: providers/openMeteo.js:48
+msgid "Thunderstorm with hail"
+msgstr "Onweer met hagel"
+
+#: providers/openMeteo.js:49
+msgid "Thunderstorm with heavy hail"
+msgstr "Onweer met zware hagel"
+
+#: providers/yrNo.js:11
+msgid "Fair"
+msgstr "Licht bewolkt"
+
+#: providers/yrNo.js:13
+msgid "Cloudy"
+msgstr "Bewolkt"
+
+#: providers/yrNo.js:18
+msgid "Light rain and thunder"
+msgstr "Lichte regen en onweer"
+
+#: providers/yrNo.js:19
+msgid "Rain and thunder"
+msgstr "Regen en onweer"
+
+#: providers/yrNo.js:20
+msgid "Heavy rain and thunder"
+msgstr "Zware regen en onweer"
+
+#: providers/yrNo.js:23
+msgid "Heavy rain showers"
+msgstr "Zware regenbuien"
+
+#: providers/yrNo.js:24
+msgid "Light rain showers and thunder"
+msgstr "Lichte regenbuien en onweer"
+
+#: providers/yrNo.js:25
+msgid "Rain showers and thunder"
+msgstr "Regenbuien en onweer"
+
+#: providers/yrNo.js:26
+msgid "Heavy rain showers and thunder"
+msgstr "Zware regenbuien en onweer"
+
+#: providers/yrNo.js:27
+msgid "Light sleet"
+msgstr "Lichte natte sneeuw"
+
+#: providers/yrNo.js:28
+msgid "Sleet"
+msgstr "Natte sneeuw"
+
+#: providers/yrNo.js:29
+msgid "Heavy sleet"
+msgstr "Zware natte sneeuw"
+
+#: providers/yrNo.js:30
+msgid "Light sleet and thunder"
+msgstr "Lichte natte sneeuw en onweer"
+
+#: providers/yrNo.js:31
+msgid "Sleet and thunder"
+msgstr "Natte sneeuw en onweer"
+
+#: providers/yrNo.js:32
+msgid "Heavy sleet and thunder"
+msgstr "Zware natte sneeuw en onweer"
+
+#: providers/yrNo.js:33
+msgid "Light sleet showers"
+msgstr "Lichte buien met natte sneeuw"
+
+#: providers/yrNo.js:34
+msgid "Sleet showers"
+msgstr "Buien met natte sneeuw"
+
+#: providers/yrNo.js:35
+msgid "Heavy sleet showers"
+msgstr "Zware buien met natte sneeuw"
+
+#: providers/yrNo.js:36
+msgid "Light sleet showers and thunder"
+msgstr "Lichte buien met natte sneeuw en onweer"
+
+#: providers/yrNo.js:37
+msgid "Sleet showers and thunder"
+msgstr "Buien met natte sneeuw en onweer"
+
+#: providers/yrNo.js:38
+msgid "Heavy sleet showers and thunder"
+msgstr "Zware buien met natte sneeuw en onweer"
+
+#: providers/yrNo.js:42
+msgid "Light snow and thunder"
+msgstr "Lichte sneeuw en onweer"
+
+#: providers/yrNo.js:43
+msgid "Snow and thunder"
+msgstr "Sneeuw en onweer"
+
+#: providers/yrNo.js:44
+msgid "Heavy snow and thunder"
+msgstr "Zware sneeuwval en onweer"
+
+#: providers/yrNo.js:45
+msgid "Light snow showers"
+msgstr "Lichte sneeuwbuien"
+
+#: providers/yrNo.js:48
+msgid "Light snow showers and thunder"
+msgstr "Lichte sneeuwbuien en onweer"
+
+#: providers/yrNo.js:49
+msgid "Snow showers and thunder"
+msgstr "Sneeuwbuien en onweer"
+
+#: providers/yrNo.js:50
+msgid "Heavy snow showers and thunder"
+msgstr "Zware sneeuwbuien en onweer"
+
+#: ui/Forecast.js:24
+msgid "Low"
+msgstr "Laag"
+
+#: ui/Forecast.js:25
+msgid "Moderate"
+msgstr "Matig"
+
+#: ui/Forecast.js:26
+msgid "High"
+msgstr "Hoog"
+
+#: ui/Forecast.js:27
+msgid "Very high"
+msgstr "Zeer hoog"
+
+#: ui/Forecast.js:28
+msgid "Extreme"
+msgstr "Extreem"
+
+#: ui/Forecast.js:59
+msgid "Next hours"
+msgstr "Komende uren"
+
+#: ui/Forecast.js:65
+msgid "Next days"
+msgstr "Komende dagen"
+
+#: ui/Forecast.js:113
+msgid "No forecast available"
+msgstr "Geen verwachting beschikbaar"
+
+#: ui/Forecast.js:151
+msgid "Today"
+msgstr "Vandaag"
+
+#: ui/Forecast.js:155
+msgid "Tomorrow"
+msgstr "Morgen"
+
+#: ui/Forecast.js:238
+#, python-format
+msgid "UV %d · %s"
+msgstr "UV %d · %s"
+
+#: ui/Forecast.js:247
+#, python-format
+msgid "Gusts %s"
+msgstr "Windstoten %s"
+
+#: ui/Forecast.js:284
+msgid "No daylight left"
+msgstr "Geen daglicht meer"
+
+#: ui/Forecast.js:287
+msgid "No dry spell in daylight"
+msgstr "Geen droge periode bij daglicht"
+
+#: ui/Forecast.js:291
+#, python-format
+msgid "Walk: dry %s"
+msgstr "Wandeling: droog %s"
+
+#: ui/PanelButton.js:81 ui/PanelButton.js:424
+#, python-format
+msgid "Weather API: %s"
+msgstr "Weergegevens: %s"
+
+#: ui/PanelButton.js:126 ui/PanelButton.js:185
+msgid "No location"
+msgstr "Geen locatie"
+
+#: ui/PanelButton.js:132 ui/PanelButton.js:526 ui/PanelButton.js:741
+msgid "Offline"
+msgstr "Offline"
+
+#: ui/PanelButton.js:138
+msgid "Error"
+msgstr "Fout"
+
+#: ui/PanelButton.js:161
+msgid "Loading"
+msgstr "Laden"
+
+#: ui/PanelButton.js:305
+msgid "Offline — cannot determine your location"
+msgstr "Offline — kan je locatie niet bepalen"
+
+#: ui/PanelButton.js:313 ui/PanelButton.js:320 ui/PanelButton.js:363
+msgid "Could not determine your location"
+msgstr "Kan je locatie niet bepalen"
+
+#: ui/PanelButton.js:370
+msgid "Refresh"
+msgstr "Verversen"
+
+#: ui/PanelButton.js:375
+msgid "Offline — cannot refresh weather"
+msgstr "Offline — kan het weer niet verversen"
+
+#: ui/PanelButton.js:379
+msgid "Refreshing weather…"
+msgstr "Weer wordt ververst…"
+
+#: ui/PanelButton.js:386
+msgid "Weather refreshed"
+msgstr "Weer ververst"
+
+#: ui/PanelButton.js:387 ui/PanelButton.js:391
+msgid "Refresh failed"
+msgstr "Verversen mislukt"
+
+#: ui/PanelButton.js:652
+msgid "Feels like"
+msgstr "Voelt als"
+
+#: ui/PanelButton.js:653
+msgid "Humidity"
+msgstr "Luchtvochtigheid"
+
+#: ui/PanelButton.js:654
+msgid "UV index"
+msgstr "UV-index"
+
+#: ui/PanelButton.js:655
+msgid "Wind"
+msgstr "Wind"
+
+#: ui/PanelButton.js:656
+msgid "Gusts"
+msgstr "Windstoten"
+
+#: ui/PanelButton.js:706
+msgid "now"
+msgstr "nu"
+
+#: ui/PanelButton.js:713
+#, python-format
+msgid "Best time for a walk today: %s"
+msgstr "Beste tijd voor een wandeling vandaag: %s"
+
+#: ui/PanelButton.js:714
+msgid "No dry spell left in today’s daylight"
+msgstr "Vandaag geen droge periode meer bij daglicht"
+
+#: ui/PanelButton.js:718
+#, python-format
+msgid "Best time for a walk tomorrow: %s"
+msgstr "Beste tijd voor een wandeling morgen: %s"
+
+#: ui/PanelButton.js:721
+msgid "No dry spell expected tomorrow"
+msgstr "Morgen geen droge periode verwacht"
+
+#: ui/PanelButton.js:736
+msgid "Showing cached weather data"
+msgstr "Opgeslagen weergegevens worden getoond"
+
+#: ui/PanelButton.js:763
+msgid "Forecast disabled"
+msgstr "Verwachting uitgeschakeld"
+
+#: ui/PanelButton.js:784
+msgid "No location selected"
+msgstr "Geen locatie geselecteerd"
+
+#: ui/PanelButton.js:847
+#, python-format
+msgid "Updated %s"
+msgstr "Bijgewerkt %s"
+
+#: ui/PanelButton.js:850
+#, python-format
+msgid "Offline — last updated %s"
+msgstr "Offline — laatst bijgewerkt %s"
+
+#: ui/PanelButton.js:867
+msgid "just now"
+msgstr "zojuist"
+
+#: ui/PanelButton.js:870
+#, python-format
+msgid "%d min ago"
+msgstr "%d min geleden"
+
+#: utils/format.js:53
+msgid "N"
+msgstr "N"
+
+#: utils/format.js:53
+msgid "NE"
+msgstr "NO"
+
+#: utils/format.js:53
+msgid "E"
+msgstr "O"
+
+#: utils/format.js:53
+msgid "SE"
+msgstr "ZO"
+
+#: utils/format.js:54
+msgid "S"
+msgstr "Z"
+
+#: utils/format.js:54
+msgid "SW"
+msgstr "ZW"
+
+#: utils/format.js:54
+msgid "W"
+msgstr "W"
+
+#: utils/format.js:54
+msgid "NW"
+msgstr "NW"
+
+#: utils/format.js:95
+msgid "Bft"
+msgstr "Bft"
+
