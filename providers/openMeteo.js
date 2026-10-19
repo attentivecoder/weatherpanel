@@ -85,76 +85,76 @@ class OpenMeteoProvider extends BaseProvider {
      * --------------------------------------------------------- */
 
     _normalizeCurrent(json, locationName) {
-        const c = json?.current;
-        if (!c)
+        const current = json?.current;
+        if (!current)
             return null;
 
         return {
             location: locationName,
 
-            summary: this._codeToSummary(c.weather_code),
-            icon: this._mapIcon(c.weather_code, c.is_day),
+            summary: this._codeToSummary(current.weather_code),
+            icon: this._mapIcon(current.weather_code, current.is_day),
 
-            temp: c.temperature_2m,
-            feelsLike: c.apparent_temperature ?? null,
-            humidity: c.relative_humidity_2m ?? null,
-            pressure: c.pressure_msl ?? null,
+            temp: current.temperature_2m,
+            feelsLike: current.apparent_temperature ?? null,
+            humidity: current.relative_humidity_2m ?? null,
+            pressure: current.pressure_msl ?? null,
 
             wind: {
-                speed: c.wind_speed_10m,
-                deg: c.wind_direction_10m,
+                speed: current.wind_speed_10m,
+                deg: current.wind_direction_10m,
             },
-            gusts: c.wind_gusts_10m ?? null,
-            uv: c.uv_index ?? null,
+            gusts: current.wind_gusts_10m ?? null,
+            uv: current.uv_index ?? null,
 
             sunrise: null,
             sunset: null,
 
-            time: new Date(c.time * 1000).toISOString(),
+            time: new Date(current.time * 1000).toISOString(),
         };
     }
 
     _normalizeSteps(json) {
-        const h = json?.hourly;
-        if (!h?.time)
+        const hourly = json?.hourly;
+        if (!hourly?.time)
             return [];
 
-        return h.time.map((t, i) => ({
-            time: t * 1000,
+        return hourly.time.map((timestamp, index) => ({
+            time: timestamp * 1000,
             hours: 1,
 
-            temp: h.temperature_2m?.[i] ?? null,
-            feelsLike: h.apparent_temperature?.[i] ?? null,
-            humidity: h.relative_humidity_2m?.[i] ?? null,
-            pressure: h.pressure_msl?.[i] ?? null,
+            temp: hourly.temperature_2m?.[index] ?? null,
+            feelsLike: hourly.apparent_temperature?.[index] ?? null,
+            humidity: hourly.relative_humidity_2m?.[index] ?? null,
+            pressure: hourly.pressure_msl?.[index] ?? null,
 
             wind: {
-                speed: h.wind_speed_10m?.[i] ?? null,
-                deg: h.wind_direction_10m?.[i] ?? null,
+                speed: hourly.wind_speed_10m?.[index] ?? null,
+                deg: hourly.wind_direction_10m?.[index] ?? null,
             },
-            gusts: h.wind_gusts_10m?.[i] ?? null,
+            gusts: hourly.wind_gusts_10m?.[index] ?? null,
 
-            precip: h.precipitation?.[i] ?? null,
-            precipProb: h.precipitation_probability?.[i] ?? null,
-            uv: h.uv_index?.[i] ?? null,
+            precip: hourly.precipitation?.[index] ?? null,
+            precipProb: hourly.precipitation_probability?.[index] ?? null,
+            uv: hourly.uv_index?.[index] ?? null,
 
-            isDay: h.is_day?.[i] !== 0,
-            summary: this._codeToSummary(h.weather_code?.[i]),
-            icon: this._mapIcon(h.weather_code?.[i], h.is_day?.[i]),
+            isDay: hourly.is_day?.[index] !== 0,
+            summary: this._codeToSummary(hourly.weather_code?.[index]),
+            icon: this._mapIcon(hourly.weather_code?.[index], hourly.is_day?.[index]),
         }));
     }
 
     _sunTimes(json) {
-        const d = json?.daily;
-        if (!d?.time)
+        const daily = json?.daily;
+        if (!daily?.time)
             return null;
 
         const map = new Map();
 
-        d.time.forEach((t, i) => {
-            map.set(localDayKey(t * 1000), {
-                sunrise: d.sunrise?.[i] ? d.sunrise[i] * 1000 : null,
-                sunset: d.sunset?.[i] ? d.sunset[i] * 1000 : null,
+        daily.time.forEach((timestamp, index) => {
+            map.set(localDayKey(timestamp * 1000), {
+                sunrise: daily.sunrise?.[index] ? daily.sunrise[index] * 1000 : null,
+                sunset: daily.sunset?.[index] ? daily.sunset[index] * 1000 : null,
                 polar: null,
             });
         });
