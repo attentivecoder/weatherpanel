@@ -1,0 +1,56 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Compile translations
+        run: |
+          sudo apt-get install -y gettext
+          for po in po/*.po; do
+            lang=$(basename "$po" .po)
+            mkdir -p "locale/$lang/LC_MESSAGES"
+            msgfmt "$po" -o "locale/$lang/LC_MESSAGES/weatherpanel.mo"
+          done
+
+      - name: Build zip
+        run: |
+          zip -r weatherpanel@attentivecoder.zip \
+            extension.js \
+            controller.js \
+            metadata.json \
+            prefs.js \
+            stylesheet.css \
+            readme.md \
+            LICENSE \
+            media \
+            preferences \
+            providers \
+            services \
+            ui \
+            utils \
+            locale \
+            schemas \
+            -x "schemas/gschemas.compiled" \
+            -x ".git/*" \
+            -x ".gitignore" \
+            -x "node_modules/*" \
+            -x "package.json" \
+            -x "package-lock.json" \
+            -x "media/iconSmall.png"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: weatherpanel@attentivecoder.zip
