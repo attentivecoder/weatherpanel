@@ -380,7 +380,7 @@ export default class PanelButton {
                 Main.notify(_('Refreshing weather…'));
 
                 try {
-                    const ok = await this._provider.refresh(true);
+                    const ok = await this._provider.refresh(true, { force: true });
 
                     Main.notify(
                         ok

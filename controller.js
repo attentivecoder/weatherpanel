@@ -38,6 +38,7 @@ export default class Controller {
         this._forecastTimerId = 0;
 
         this._refreshInProgress = false;
+        this._refreshQueued = false;
     }
 
     enable() {
@@ -66,6 +67,7 @@ export default class Controller {
         this._providerPrimary.stop();
         this._providerFallback.stop();
         this._refreshInProgress = false;
+        this._refreshQueued = false;
 
         this._providerPrimary = null;
         this._providerFallback = null;
@@ -110,6 +112,7 @@ export default class Controller {
         this._providerPrimary.stop();
         this._providerFallback.stop();
         this._refreshInProgress = false;
+        this._refreshQueued = false;
 
         // _initProviders() already sets this._provider, so hand the
         // new provider to the panel directly.
@@ -204,11 +207,15 @@ export default class Controller {
                     return;
                 }
 
-                if (
-                    key === 'city' ||
-                    key === 'actual-city' ||
-                    key === 'days-forecast'
-                ) {
+                // The response already covers the maximum number of
+                // days, so no new request is needed.
+                if (key === 'days-forecast') {
+                    this._providerPrimary.rebuildForecast();
+                    this._providerFallback.rebuildForecast();
+                    return;
+                }
+
+                if (key === 'city' || key === 'actual-city') {
                     this._refreshWithFallback(true).catch(logError);
                     this._refreshWithFallback(false).catch(logError);
                 }
@@ -267,8 +274,12 @@ export default class Controller {
     /* ---------------- REFRESH / FALLBACK ---------------- */
 
     async _refreshWithFallback(isCurrent) {
-        if (this._refreshInProgress)
+        // Run again once the current refresh is done, so a change made
+        // meanwhile (e.g. a new city) is not lost.
+        if (this._refreshInProgress) {
+            this._refreshQueued = true;
             return;
+        }
 
         this._refreshInProgress = true;
         
@@ -297,8 +308,14 @@ export default class Controller {
 
         } finally {
             // A stale refresh must not clear the flag of a newer one.
-            if (token === this._refreshToken)
+            if (token === this._refreshToken) {
                 this._refreshInProgress = false;
+
+                if (this._refreshQueued) {
+                    this._refreshQueued = false;
+                    this._refreshWithFallback(isCurrent).catch(logError);
+                }
+            }
         }
     }
 }

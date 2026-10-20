@@ -5,6 +5,11 @@ import Soup from 'gi://Soup';
 import { buildDays, nextHours } from '../utils/insights.js';
 import { createSession } from '../utils/http.js';
 
+// A response is reused instead of asking the API again for at least
+// this long, or until the server's Expires header if that is later.
+const MIN_FETCH_INTERVAL_MS = 5 * 60 * 1000;
+const MAX_FETCH_INTERVAL_MS = 60 * 60 * 1000;
+
 export default GObject.registerClass({
     Signals: {
         'weather-updated': { param_types: [GObject.TYPE_JSOBJECT] },
@@ -20,6 +25,11 @@ export default GObject.registerClass({
         this._session = createSession();
 
         this._data = null;
+
+        // Last good response, so settings changes and overlapping
+        // refreshes don't each cost a request.
+        this._cache = null;   // { url, json, city, freshUntil }
+        this._pending = null; // { url, promise }
     }
 
     /* ---------------------------------------------------------
@@ -34,9 +44,11 @@ export default GObject.registerClass({
         return this._data;
     }
 
-    async refresh(isCurrent) {
+    // force skips the cache (manual refresh) but still shares a
+    // request that is already in flight.
+    async refresh(isCurrent, { force = false } = {}) {
         try {
-            const data = await this._fetchWeather();
+            const data = await this._fetchWeather(force);
 
             if (!data) {
                 this._emitError('No weather data');
@@ -56,11 +68,23 @@ export default GObject.registerClass({
         }
     }
 
+    // Re-applies settings such as the number of forecast days to the
+    // last response, without a network request.
+    rebuildForecast() {
+        if (!this._cache)
+            return false;
+
+        this._data = this._buildData(this._cache.json, this._cache.city);
+        this.emit('forecast-updated', this._data);
+
+        return true;
+    }
+
     /* ---------------------------------------------------------
      * FETCH + CITY HANDLING
      * --------------------------------------------------------- */
 
-    async _fetchWeather() {
+    async _fetchWeather(force = false) {
         const city = this._getCity();
         if (!city)
             return null;
@@ -69,10 +93,14 @@ export default GObject.registerClass({
         if (!url)
             throw new Error('Provider did not return a URL');
 
-        const json = await this._getJson(url);
+        const json = await this._getJsonCached(url, city, force);
         if (!json)
             return null;
 
+        return this._buildData(json, city);
+    }
+
+    _buildData(json, city) {
         const steps = this._normalizeSteps(json);
         const forecast = buildDays(steps, {
             lat: city.lat,
@@ -125,6 +153,41 @@ export default GObject.registerClass({
      * NETWORK
      * --------------------------------------------------------- */
 
+    async _getJsonCached(url, city, force) {
+        const cache = this._cache;
+
+        if (!force && cache?.url === url && Date.now() < cache.freshUntil)
+            return cache.json;
+
+        if (this._pending?.url !== url) {
+            const promise = this._getJson(url);
+            this._pending = { url, promise };
+
+            promise.then(result => {
+                if (this._pending?.promise === promise)
+                    this._pending = null;
+
+                if (!result)
+                    return;
+
+                const now = Date.now();
+
+                this._cache = {
+                    url,
+                    json: result.json,
+                    city,
+                    freshUntil: Math.min(
+                        Math.max(now + MIN_FETCH_INTERVAL_MS, result.expires),
+                        now + MAX_FETCH_INTERVAL_MS),
+                };
+            });
+        }
+
+        const result = await this._pending.promise;
+        return result?.json ?? null;
+    }
+
+    // Resolves to { json, expires } (expires in ms, 0 if unknown), or null.
     async _getJson(url) {
         try {
             return await new Promise((resolve, reject) => {
@@ -145,7 +208,13 @@ export default GObject.registerClass({
                                 throw new Error(`HTTP ${msg.get_status()}`);
 
                             const text = new TextDecoder().decode(bytes.get_data());
-                            resolve(JSON.parse(text));
+                            const expires =
+                                msg.get_response_headers().get_one('Expires');
+
+                            resolve({
+                                json: JSON.parse(text),
+                                expires: Date.parse(expires) || 0,
+                            });
                         } catch (e) {
                             reject(e);
                         }

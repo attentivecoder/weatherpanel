@@ -70,8 +70,10 @@ class YrNoProvider extends BaseProvider {
      * --------------------------------------------------------- */
 
     // "complete" adds feels-like, gusts, UV and precipitation probability.
+    // MET Norway's terms ask for at most 4 decimals in coordinates.
     _buildUrl(lat, lon) {
-        return `https://api.met.no/weatherapi/locationforecast/2.0/complete?lat=${lat}&lon=${lon}`;
+        return 'https://api.met.no/weatherapi/locationforecast/2.0/complete' +
+            `?lat=${lat.toFixed(4)}&lon=${lon.toFixed(4)}`;
     }
 
     /* ---------------------------------------------------------
